@@ -6,26 +6,26 @@
   --foreground: #171717;
 
   /* Primary colors (Purple) */
-  --color-secondary-1: #f3e8ff;
-  --color-secondary-2: #e9d5ff;
-  --color-secondary-3: #d8b4fe;
-  --color-secondary-4: #c084fc;
-  --color-secondary-5: #a855f7;
-  --color-secondary-6: #9333ea;
-  --color-secondary-7: #7e22ce;
-  --color-secondary-8: #6b21a8;
-  --color-secondary-9: #581c87;
+  --color-primary-1: #f3e8ff;
+  --color-primary-2: #e9d5ff;
+  --color-primary-3: #d8b4fe;
+  --color-primary-4: #c084fc;
+  --color-primary-5: #a855f7;
+  --color-primary-6: #9333ea;
+  --color-primary-7: #7e22ce;
+  --color-primary-8: #6b21a8;
+  --color-primary-9: #581c87;
 
-  /* Secondary colors (Blue) */
-  --color-primary-1: #dbeafe;
-  --color-primary-2: #bfdbfe;
-  --color-primary-3: #93c5fd;
-  --color-primary-4: #60a5fa;
-  --color-primary-5: #3b82f6;
-  --color-primary-6: #2563eb;
-  --color-primary-7: #1d4ed8;
-  --color-primary-8: #1e40af;
-  --color-primary-9: #1e3a8a;
+  /* secondary colors (Blue) */
+  --color-secondary-1: #dbeafe;
+  --color-secondary-2: #bfdbfe;
+  --color-secondary-3: #93c5fd;
+  --color-secondary-4: #60a5fa;
+  --color-secondary-5: #3b82f6;
+  --color-secondary-6: #2563eb;
+  --color-secondary-7: #1d4ed8;
+  --color-secondary-8: #1e40af;
+  --color-secondary-9: #1e3a8a;
 }
 
 @theme inline {
@@ -51,16 +51,16 @@
     --color-primary-8: #e9d5ff;
     --color-primary-9: #f3e8ff;
 
-    /* Adjust secondary colors for dark mode */
-    --color-secondary-1: #1e3a8a;
-    --color-secondary-2: #1e40af;
-    --color-secondary-3: #1d4ed8;
-    --color-secondary-4: #2563eb;
-    --color-secondary-5: #3b82f6;
-    --color-secondary-6: #60a5fa;
-    --color-secondary-7: #93c5fd;
-    --color-secondary-8: #bfdbfe;
-    --color-secondary-9: #dbeafe;
+    /* Adjust primary colors for dark mode */
+    --color-primary-1: #1e3a8a;
+    --color-primary-2: #1e40af;
+    --color-primary-3: #1d4ed8;
+    --color-primary-4: #2563eb;
+    --color-primary-5: #3b82f6;
+    --color-primary-6: #60a5fa;
+    --color-primary-7: #93c5fd;
+    --color-primary-8: #bfdbfe;
+    --color-primary-9: #dbeafe;
   }
 }
 
