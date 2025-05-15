@@ -14,7 +14,7 @@ export default function HeroSection() {
                     </p>
                     <div className="mt-10 flex justify-center gap-4 flex-wrap">
                         <Link
-                            href="/memory-capture"
+                            href="#google-form"
                             className="px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-[var(--color-primary-6)] hover:bg-[var(--color-primary-7)] md:text-lg"
                         >
                             Add a Memory
