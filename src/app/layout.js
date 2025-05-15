@@ -1,11 +1,20 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
+import { Poppins } from 'next/font/google'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'], // Add whatever weights you need
+  variable: '--font-poppins',
+  display: 'swap',
+})
+
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -21,7 +30,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${poppins.variable} antialiased`}
       >
         <header className="border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -32,26 +41,6 @@ export default function RootLayout({ children }) {
                     IMET
                   </Link>
                 </div>
-                <nav className="ml-6 flex space-x-8">
-                  <Link 
-                    href="/connections" 
-                    className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  >
-                    Connections
-                  </Link>
-                  <Link 
-                    href="/memory-capture" 
-                    className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  >
-                    Add Memory
-                  </Link>
-                  <Link 
-                    href="/nudges" 
-                    className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  >
-                    Smart Nudges
-                  </Link>
-                </nav>
               </div>
             </div>
           </div>
