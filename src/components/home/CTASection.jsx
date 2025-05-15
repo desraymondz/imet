@@ -11,14 +11,6 @@ export default function CTASection() {
                     <p className="mt-4 text-xl text-[var(--color-primary-1)]">
                         Never forget a name, face, or important detail again
                     </p>
-                    <div className="mt-8">
-                        <Link
-                            href="/memory-capture"
-                            className="px-8 py-3 border border-transparent text-base font-medium rounded-md text-[var(--color-primary-7)] bg-white hover:bg-[var(--color-primary-1)] md:text-lg"
-                        >
-                            Get Started
-                        </Link>
-                    </div>
                 </div>
             </div>
         </section>
