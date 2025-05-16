@@ -17,7 +17,7 @@ export default function HeroSection() {
                             href="#google-form"
                             className="px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-[var(--color-primary-6)] hover:bg-[var(--color-primary-7)] md:text-lg"
                         >
-                            Add a Memory
+                            Join waitlist
                         </Link>
                     </div>
                 </div>
