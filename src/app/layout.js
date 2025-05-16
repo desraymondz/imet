@@ -22,7 +22,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "IMET - Remember Everyone You Meet",
+  title: "iMet - Remember Everyone You Meet",
   description: "A smart way to capture and organize your professional and personal connections",
   icons: {
     icon: "/favicon.ico",

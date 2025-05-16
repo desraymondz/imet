@@ -1,4 +1,4 @@
-# IMET - Post-Event Memory Capture
+# iMet - Post-Event Memory Capture
 
 This Next.js application helps you remember people you've met by:
 - Recording voice descriptions
