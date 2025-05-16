@@ -24,6 +24,11 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "IMET - Remember Everyone You Meet",
   description: "A smart way to capture and organize your professional and personal connections",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon-32x32.png",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({ children }) {
@@ -38,7 +43,11 @@ export default function RootLayout({ children }) {
               <div className="flex">
                 <div className="flex-shrink-0 flex items-center">
                   <Link href="/" className="text-xl font-bold text-blue-600">
-                    IMET
+                    <img
+                      src="/imet-logo-png.png"
+                      alt="Imet Logo"
+                      className="h-12 w-auto"
+                    />
                   </Link>
                 </div>
               </div>
