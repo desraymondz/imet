@@ -10,7 +10,7 @@ export default function HeroSection() {
                         <span className="block text-[var(--color-primary-6)]">who you meet</span>
                     </h1>
                     <p className="mt-3 max-w-md mx-auto text-base text-[var(--foreground)] sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-                        IMET helps you remember and organize the important people in your personal and professional life.
+                        iMet helps you remember and organize the important people in your personal and professional life.
                     </p>
                     <div className="mt-10 flex justify-center gap-4 flex-wrap">
                         <Link
