@@ -1,0 +1,52 @@
+# Reference: https://docs.docker.com/reference/compose-file/services/
+
+services:
+
+  postgres:
+    # postgres 16 with pgvector
+    image: pgvector/pgvector:pg16
+    container_name: imet_postgres
+    env_file: .env.local
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    
+    # data persists between restarts
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    
+    # wait for postgres to be ready before starting api
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: imet_api
+    env_file: .env.local
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES}
+    ports:
+      - "8000:8000"
+    
+    # live reload
+    volumes:
+      - ./backend:/app/backend
+    
+    # wait for postgres to be ready before starting api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  postgres_data:
