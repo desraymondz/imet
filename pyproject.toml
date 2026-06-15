@@ -9,6 +9,7 @@ dependencies = [
     "bcrypt>=5.0.0",
     "fastapi>=0.137.0",
     "passlib>=1.7.4",
+    "pgvector>=0.4.2",
     "psycopg2-binary>=2.9.12",
     "pydantic-settings>=2.14.1",
     "python-dotenv>=1.2.2",
