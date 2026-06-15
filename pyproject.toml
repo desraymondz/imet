@@ -1,0 +1,7 @@
+[project]
+name = "imet"
+version = "0.1.0"
+description = "iMet - a relationship health manager app"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
