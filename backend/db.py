@@ -40,3 +40,11 @@ def check_db_connection() -> bool:
         return True
     except Exception:
         return False
+
+
+def init_db():
+    """Initialise the database tables and extensions."""
+    with engine.connect() as conn:
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        conn.commit()
+    Base.metadata.create_all(bind=engine)
