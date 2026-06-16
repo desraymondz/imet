@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.config import settings
 from backend.db import check_db_connection, init_db
 
+from backend.routers import auth
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -38,6 +40,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include routers
+app.include_router(auth.router)
 
 @app.get("/health")
 def health():
