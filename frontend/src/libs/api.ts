@@ -11,6 +11,7 @@ export const api = axios.create({
 // Reference: https://axios-http.com/docs/interceptors
 api.interceptors.request.use((config) => {
     // Get the JWT token from localStorage
+    // TODO: change to HTTP-only cookie
     const token = localStorage.getItem('token')
     
     // If the token is found, attach it to the request headers
