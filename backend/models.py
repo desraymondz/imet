@@ -18,7 +18,7 @@ EMBEDDING_DIM = 768
 # ---- ENUMS ----
 class Modality(str, enum.Enum):
     voice = "voice"
-    card = "image"
+    image = "image"
     text = "text"
 
 class CaptureStatus(str, enum.Enum):
