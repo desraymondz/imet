@@ -1,113 +1,147 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap');
 @import "tailwindcss";
 
+/* iMet Design System — lean */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* brand */
+  --violet: #9747ff;
+  --violet-deep: #7c3fe4;
+  --blue: #4a7bff;
+  --grad-brand: linear-gradient(96deg, var(--violet) 0%, var(--blue) 100%);
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  /* neutrals */
+  --bg: #fafafc;
+  --bg-card: #ffffff;
+  --fg: #1f1f2a;
+  --fg-2: #4a4a5c;
+  --fg-3: #8b8b9c;
+  --fg-on-brand: #ffffff;
+  --hairline: rgba(31, 31, 42, 0.06);
+  --hairline-2: rgba(31, 31, 42, 0.1);
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* elevation */
+  --shadow: 0 1px 2px rgba(20, 20, 40, 0.04), 0 8px 24px rgba(20, 20, 40, 0.06);
+  --shadow-lg: 0 2px 4px rgba(20, 20, 40, 0.05), 0 16px 40px rgba(80, 60, 200, 0.1);
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  /* radii */
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-pill: 999px;
+
+  /* type */
+  --font-sans: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* mobile shell */
+  --mobile-width: 390px;
+  --mobile-height: 844px;
+  --gutter-bg: #ffffff;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
+  font-family: var(--font-sans);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+html {
+  background: var(--gutter-bg);
+}
+
+body {
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--gutter-bg);
+}
+
+#root {
+  width: 100%;
+  max-width: var(--mobile-width);
+  min-height: 100dvh;
+  background: var(--bg);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+@media (min-width: 768px) {
+  #root {
+    width: var(--mobile-width);
+    min-height: unset;
+    height: min(100dvh, var(--mobile-height));
+    aspect-ratio: 390 / 844;
+    border-inline: 1px solid var(--hairline-2);
+  }
 }
 
 h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
   margin: 0;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+h2 {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0;
 }
 
-code {
+p {
+  font-size: 16px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.t-gradient {
+  background: var(--grad-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.t-caption {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--fg-2);
+}
+
+.card {
+  background: var(--bg-card);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--hairline);
+  padding: 24px;
+}
+
+.btn {
+  font-family: inherit;
+  font-weight: 600;
   font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+  line-height: 1;
+  border: 0;
+  border-radius: var(--r-pill);
+  padding: 14px 22px;
+  cursor: pointer;
+}
+
+.btn--primary {
+  background: var(--grad-brand);
+  color: var(--fg-on-brand);
+  box-shadow: 0 8px 22px rgba(124, 63, 228, 0.3);
+}
+
+.btn--primary:active {
+  transform: scale(0.98);
 }
