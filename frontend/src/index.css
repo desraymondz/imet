@@ -31,6 +31,9 @@
   /* type */
   --font-sans: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
+  /* semantic */
+  --danger: #e04e5c;
+
   /* mobile shell */
   --mobile-width: 390px;
   --mobile-height: 844px;
@@ -144,4 +147,48 @@ p {
 
 .btn--primary:active {
   transform: scale(0.98);
+}
+
+.btn--block {
+  width: 100%;
+  padding: 16px 22px;
+  font-size: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--hairline-2);
+  border-radius: var(--r-md);
+  background: var(--bg-card);
+  font: inherit;
+  font-size: 16px;
+  color: var(--fg);
+}
+
+.input::placeholder {
+  color: var(--fg-3);
+}
+
+.input:focus {
+  outline: 2px solid rgba(151, 71, 255, 0.25);
+  border-color: #b98eff;
+}
+
+.text-error {
+  font-size: 14px;
+  color: var(--danger);
+  text-align: center;
 }

@@ -1,53 +1,85 @@
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
+import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../libs/api.ts'
 
 export default function LoginPage() {
-    const navigate = useNavigate()
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [error, setError] = useState('')
+  const navigate = useNavigate()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
 
-    // Handle login form submission
-    async function handleLogin(e: FormEvent) {
-        e.preventDefault()
-        try {
-            // Login the user
-            const response = await api.post(
-                '/auth/login',
-                new URLSearchParams({ username: email, password }),
-            )
-            // Set the JWT token in localStorage
-            localStorage.setItem('token', response.data.access_token)
-            // Redirect to the contacts page
-            navigate('/contacts')
-        } catch (error) {
-            // Set the error message
-            setError('Invalid email or password')
-        }
+  async function handleLogin(e: FormEvent) {
+    e.preventDefault()
+    try {
+      const response = await api.post(
+        '/auth/login',
+        new URLSearchParams({ username: email, password }),
+      )
+      localStorage.setItem('token', response.data.access_token)
+      navigate('/contacts')
+    } catch {
+      setError('Invalid email or password')
     }
+  }
 
-    return (
-        <form onSubmit={handleLogin}>
-            <h1>iMet</h1>
-            {/* Display the error message */}
-            {error && <p>{error}</p>}
-            {/* Email input */}
+  return (
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden px-6">
+      {/* Background image */}
+      <img
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+        src="/backgrounds/wave-bg.svg"
+        alt=""
+        aria-hidden
+      />
+
+      <div className="relative w-full max-w-sm">
+        {/* Logo */}
+        <img
+          className="mx-auto mb-8 h-14 w-14 object-contain"
+          src="/brand/imet-logo.png"
+          alt="iMet"
+        />
+
+        {/* Login form */}
+        <form className="flex flex-col gap-4" onSubmit={handleLogin}>
+          {/* Error message */}
+          {error && <p className="text-error">{error}</p>}
+
+          {/* Email input */}
+          <label className="field">
+            <span className="field-label">Email</span>
             <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              className="input"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              required
             />
-            {/* Password input */}
+          </label>
+
+          {/* Password input */}
+          <label className="field">
+            <span className="field-label">Password</span>
             <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+              type="password"
+              className="input"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
             />
-            {/* Login button */}
-            <button type="submit">Log in</button>
+          </label>
+
+          {/* Login button */}
+          <button type="submit" className="btn btn--primary btn--block mt-2">
+            Log in
+          </button>
         </form>
-    )
+      </div>
+    </div>
+  )
 }
