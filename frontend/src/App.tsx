@@ -1,29 +1,42 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import type { ReactNode } from 'react'
 import LoginPage from './pages/Login.tsx'
 import ContactsPage from './pages/Contacts.tsx'
+import AppLayout from './layouts/AppLayout.tsx'
+
+function RequireAuth({ children }: { children: ReactNode }) {
+  // Redirect to login if no JWT in localStorage
+  // TODO: change to HTTP-only cookie
+  const token = localStorage.getItem('token')
+  return token ? children : <Navigate to="/login" replace />
+}
 
 function App() {
   const token = localStorage.getItem('token')
 
   return (
-    // Set up the browser router for React Router
     <BrowserRouter>
-      {/* Set up the routes*/}
       <Routes>
-        {/* Login page */}
-        <Route 
-          path="/login" 
-          element={<LoginPage />} 
-        />
+        {/* Public */}
+        <Route path="/login" element={<LoginPage />} />
 
-        {/* Contacts page */}
+        {/* Authenticated routes with wave background and bottom nav */}
         <Route
-          path="/contacts"
-          element={token ? <ContactsPage /> : <Navigate to="/login" />}
-        />
-        
-        {/* Redirect to login or contacts page based on the authentication status */}
-        <Route path="*" element={<Navigate to={token ? "/contacts" : "/login"} />} />
+          element={
+            <RequireAuth>
+              <AppLayout />
+            </RequireAuth>
+          }
+        >
+          <Route path="/contacts" element={<ContactsPage />} />
+          {/* TODO: replace with AddContactPage when create contact is built */}
+          <Route path="/contacts/new" element={<ContactsPage />} />
+          {/* TODO: replace with RecallPage when recall is built */}
+          <Route path="/recall" element={<ContactsPage />} />
+        </Route>
+
+        {/* Redirects to login or contacts based on auth status */}
+        <Route path="*" element={<Navigate to={token ? '/contacts' : '/login'} replace />} />
       </Routes>
     </BrowserRouter>
   )
