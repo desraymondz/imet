@@ -1,8 +1,10 @@
 from contextlib import asynccontextmanager
+import asyncio
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.ai.asr.faster_whisper import get_asr
 from backend.config import settings
 from backend.db import check_db_connection, init_db
 
@@ -21,6 +23,10 @@ async def lifespan(app: FastAPI):
     # Initialise the database
     init_db()
     print("iMet: Database initialised successfully")
+
+    # Load the ASR model
+    get_asr()
+    print("iMet: ASR model loaded successfully")
     
     yield
 
