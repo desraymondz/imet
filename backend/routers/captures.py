@@ -8,9 +8,9 @@ from backend.ai.ocr.easyocr import get_ocr
 # Define the prefix and tags for the captures router
 router = APIRouter(prefix="/captures", tags=["captures"])
 
-# Max 25MB upload
-MAX_AUDIO_SIZE = 25 * 1024 * 1024
-MAX_IMAGE_SIZE = 25 * 1024 * 1024
+# Max file upload sizes
+MAX_AUDIO_SIZE = 10 * 1024 * 1024 # 10MB
+MAX_IMAGE_SIZE = 25 * 1024 * 1024 # 25MB
 
 
 @router.post("/transcribe")
@@ -26,7 +26,7 @@ async def transcribe_audio(
     if len(audio_bytes) > MAX_AUDIO_SIZE:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail="Audio file too large. Max 25MB.",
+            detail="Audio file too large. Max 10MB.",
         )
 
     # Validate file type
