@@ -5,6 +5,7 @@
 :root {
   /* brand */
   --violet: #9747ff;
+  --violet-light: #efeafb;
   --violet-deep: #7c3fe4;
   --blue: #4a7bff;
   --grad-brand: linear-gradient(96deg, var(--violet) 0%, var(--blue) 100%);
