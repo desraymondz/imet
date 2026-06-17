@@ -1,7 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
-from sqlalchemy.orm import Session
 
-from backend.db import get_db
 from backend.dependencies import get_current_user
 from backend.models import User
 from backend.ai.asr.faster_whisper import get_asr
@@ -40,7 +38,7 @@ async def transcribe_audio(
     # Transcribe the audio file to text
     try:
         asr = get_asr()
-        transcript = asr.transcribe(audio_bytes, file.filename)
+        transcript = asr.transcribe(audio_bytes, file.filename or "audio.webm")
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

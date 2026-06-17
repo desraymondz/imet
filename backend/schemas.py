@@ -13,12 +13,21 @@ class ContactCreate(BaseModel):
     role: str | None = None
     location: str | None = None
     # LLM-generated natural language summary
-    profile_text: str | None = None 
-    # Raw ASR output (stored as Capture)
-    raw_transcript: str | None = None
-    # Raw OCR output (stored as Capture)
-    raw_ocr: str | None = None
+    profile_text: str | None = None
+    # Searchable tags, e.g. ["investor", "tech", "hiking"]
+    keywords: list[str] | None = None
 
+
+class ContactUpdate(BaseModel):
+    """Request schema for updating a contact"""
+    display_name: str | None = None
+    email: EmailStr | None = None
+    phone: str | None = None
+    company: str | None = None
+    role: str | None = None
+    location: str | None = None
+    profile_text: str | None = None
+    keywords: list[str] | None = None
 
 
 class ContactOut(BaseModel):
@@ -32,8 +41,8 @@ class ContactOut(BaseModel):
     location: str | None
     # LLM-generated natural language summary
     profile_text: str | None
-    # TODO: add profile_tags after implementing AI
-    
+    # Searchable tags, e.g. ["investor", "tech", "hiking"]
+    keywords: list[str] | None
     created_at: datetime
     updated_at: datetime
 

@@ -4,10 +4,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.ai.asr.faster_whisper import get_asr
-from backend.config import settings
 from backend.db import check_db_connection, init_db
 
 from backend.routers import auth
+from backend.routers import captures
 from backend.routers import contacts
 
 
@@ -48,6 +48,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth.router)
+app.include_router(captures.router)
 app.include_router(contacts.router)
 
 @app.get("/health")
