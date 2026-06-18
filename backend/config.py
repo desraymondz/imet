@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60
     debug: bool = False
 
+    ollama_host: str
+    ollama_model_fast: str
+    ollama_model_quality: str
+
 @lru_cache
 def get_settings() -> Settings:
     """Cache the settings instance."""
