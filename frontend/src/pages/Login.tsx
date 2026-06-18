@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../libs/api.ts'
+import GradientButton from '../components/GradientButton'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -75,9 +76,9 @@ export default function LoginPage() {
           </label>
 
           {/* Login button */}
-          <button type="submit" className="btn btn--primary btn--block mt-2">
-            Log in
-          </button>
+          <div className="mt-2">
+            <GradientButton type="submit">Log in</GradientButton>
+          </div>
         </form>
       </div>
     </div>
