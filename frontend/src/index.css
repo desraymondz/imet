@@ -162,6 +162,11 @@ p {
   transform: scale(0.98);
 }
 
+.btn--primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .btn--block {
   /* Full-width button variant */
   width: 100%;
