@@ -18,6 +18,18 @@ class ContactCreate(BaseModel):
     keywords: list[str] | None = None
 
 
+class ContactExtract(BaseModel):
+    """LLM-extracted contact fields from OCR and ASR transcript"""
+    display_name: str | None = None
+    email: EmailStr | None = None
+    phone: str | None = None
+    company: str | None = None
+    role: str | None = None
+    location: str | None = None
+    profile_text: str | None = None
+    keywords: list[str] | None = None
+
+
 class ContactUpdate(BaseModel):
     """Request schema for updating a contact"""
     display_name: str | None = None
