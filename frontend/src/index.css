@@ -100,6 +100,11 @@ body {
     aspect-ratio: 390 / 844;
     border-inline: 1px solid var(--hairline-2);
   }
+
+  .app-layout {
+    height: 100%;
+    min-height: unset;
+  }
 }
 
 h1 {
@@ -233,6 +238,7 @@ p {
 .app-layout {
   /* App shell container */
   position: relative;
+  height: 100dvh;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -256,8 +262,17 @@ p {
   position: relative;
   z-index: 1;
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding-bottom: calc(var(--nav-height) + 20px);
+}
+
+.app-layout-content--standalone {
+  /* Full-height step flow — child handles its own scroll */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: 0;
 }
 
 /* ---- Bottom navigation ---- */

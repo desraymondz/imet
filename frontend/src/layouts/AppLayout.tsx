@@ -19,8 +19,11 @@ export default function AppLayout() {
 
       {/* Main content area */}
       <main
-        className="app-layout-content"
-        style={hideBottomNav ? { paddingBottom: 0 } : undefined}
+        className={
+          hideBottomNav
+            ? 'app-layout-content app-layout-content--standalone'
+            : 'app-layout-content'
+        }
       >
         {/* Outlet for the current route */}
         <Outlet />
