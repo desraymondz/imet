@@ -15,6 +15,17 @@ uv sync
 
 For local API dev, set `DATABASE_URL` host to `localhost` in `.env.local`.
 
+**Ollama (local LLM):**
+
+Start the Ollama server, then pull models separately before first use (must match `OLLAMA_MODEL_FAST` / `OLLAMA_MODEL_QUALITY` in `.env.local`):
+
+```bash
+ollama serve
+ollama pull llama3.2:3b
+```
+
+If you change the model in `.env.local`, pull that model too, e.g. `ollama pull llama3.1:8b`.
+
 ## Run
 
 **Database (Docker):**
