@@ -167,6 +167,17 @@ p {
   opacity: 0.5;
 }
 
+.btn--neutral {
+  background: var(--bg-card);
+  color: var(--fg-2);
+  border: 1px solid var(--hairline-2);
+  box-shadow: var(--shadow);
+}
+
+.btn--neutral:active {
+  transform: scale(0.98);
+}
+
 .btn--block {
   /* Full-width button variant */
   width: 100%;

@@ -1,4 +1,4 @@
-// A gradient button block
+// Gradient button block
 
 type GradientButtonProps = {
   children: React.ReactNode
