@@ -2,8 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 
 from backend.dependencies import get_current_user
 from backend.models import User
+from backend.schemas import BuildContactRequest, ContactExtract
 from backend.ai.asr.faster_whisper import get_asr
 from backend.ai.ocr.easyocr import get_ocr
+from backend.ai.llm.ollama import get_llm
 
 # Define the prefix and tags for the captures router
 router = APIRouter(prefix="/captures", tags=["captures"])
@@ -89,3 +91,26 @@ async def ocr_image(
     return {
         "text": text
     }
+
+
+@router.post("/build-contact", response_model=ContactExtract)
+def build_contact(
+    payload: BuildContactRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Build a contact profile from transcript, OCR text, and free-form notes."""
+    try:
+        # Build the contact
+        contact = get_llm().build_contact(
+            transcript=payload.transcript,
+            ocr_text=payload.ocr_text,
+            free_form_text=payload.free_form_text,
+        )
+        # Return the contact
+        return contact
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Contact building failed: {str(e)}",
+        )
