@@ -1,4 +1,5 @@
 import { useRef, type ChangeEvent } from 'react'
+import StepTip from './StepTip'
 
 type PhotoStepProps = {
   previewUrl: string | null
@@ -69,13 +70,8 @@ export default function PhotoStep({ previewUrl, onImageSelect, error }: PhotoSte
         onChange={handleFileChange}
       />
 
-      {/* Text on the card is extracted automatically */}
-      <div className="flex items-start gap-3 rounded-[var(--r-lg)] bg-[var(--violet-light)]/60 px-4 py-3.5">
-        <img src="/ui/sparkle.svg" alt="" className="mt-0.5 size-4 shrink-0" aria-hidden />
-        <p className="text-[13px] leading-relaxed text-[var(--fg-2)]">
-          Text on the image is extracted automatically
-        </p>
-      </div>
+      {/* Photo step tip */}
+      <StepTip>Text on the image is extracted automatically</StepTip>
 
       {/* Error message */}
       {error ? <p className="text-error">{error}</p> : null}
