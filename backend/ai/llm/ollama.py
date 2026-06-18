@@ -1,10 +1,13 @@
 from enum import Enum
+import logging
 
 from ollama import Client
 from pydantic import ValidationError
 
 from backend.config import settings
 from backend.schemas import ContactExtract
+
+logger = logging.getLogger(__name__)
 
 
 class LLMType(str, Enum):
@@ -60,7 +63,7 @@ class OllamaLLM:
         transcript: str = "",
         ocr_text: str = "",
         free_form_text: str = "",
-    ) -> dict:
+    ) -> ContactExtract:
         """
         Build a contact from ASR transcript, OCR text, and free-form text.
         If no input is provided, return an empty ContactExtract.
@@ -77,7 +80,7 @@ class OllamaLLM:
 
         # If no input is provided, return an empty ContactExtract immediately
         if not inputs:
-            return ContactExtract().model_dump()
+            return ContactExtract()
 
         # Join input blocks with newlines
         inputs_block = "\n\n".join(inputs)
@@ -117,11 +120,9 @@ Do not invent facts not present in the input. Use null for unknown fields.
 
         # Parse the response
         try:
-            contact = ContactExtract.model_validate_json(response)
-            return contact
-        except ValidationError:
-            # If the response is not a valid ContactExtract, return an empty ContactExtract
-            # TODO: log the error
+            return ContactExtract.model_validate_json(response)
+        except ValidationError as e:
+            logger.warning("LLM returned invalid contact: %s", e)
             return ContactExtract()
 
 

@@ -19,7 +19,7 @@ class ContactCreate(BaseModel):
 
 
 class ContactExtract(BaseModel):
-    """LLM-extracted contact fields from OCR and ASR transcript"""
+    """Response schema for LLM-extracted contact fields from capture inputs"""
     display_name: str | None = None
     email: EmailStr | None = None
     phone: str | None = None
@@ -28,6 +28,13 @@ class ContactExtract(BaseModel):
     location: str | None = None
     profile_text: str | None = None
     keywords: list[str] | None = None
+
+
+class BuildContactRequest(BaseModel):
+    """Request schema for building a contact from capture inputs"""
+    transcript: str = ""
+    ocr_text: str = ""
+    free_form_text: str = ""
 
 
 class ContactUpdate(BaseModel):
