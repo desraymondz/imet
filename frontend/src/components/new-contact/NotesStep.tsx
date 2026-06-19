@@ -1,6 +1,3 @@
-import { type ChangeEvent } from 'react'
-import StepTip from './StepTip'
-
 type NotesStepProps = {
   value: string
   onChange: (value: string) => void
