@@ -3,6 +3,7 @@ import StepTip from './StepTip'
 
 type VoiceStepProps = {
   onRecordingComplete: (blob: Blob) => void
+  error?: string
 }
 
 // Format the time in minutes and seconds into MM:SS
@@ -12,7 +13,7 @@ function formatTime(seconds: number) {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
-export default function VoiceStep({ onRecordingComplete }: VoiceStepProps) {
+export default function VoiceStep({ onRecordingComplete, error }: VoiceStepProps) {
   // State for recording
   const [isRecording, setIsRecording] = useState(false)
   const [hasRecording, setHasRecording] = useState(false)
@@ -113,9 +114,14 @@ export default function VoiceStep({ onRecordingComplete }: VoiceStepProps) {
     <div className="flex flex-col gap-5">
       <h1>Say what you remember</h1>
 
-      {/* Error message */}
+      {/* Microphone error */}
       {micError ? (
-        <p className="text-[14px] text-[var(--danger)]">{micError}</p>
+        <p className="text-error">{micError}</p>
+      ) : null}
+
+      {/* Transcription error */}
+      {error ? (
+        <p className="text-error">{error}</p>
       ) : null}
 
       <div className="flex flex-col items-center gap-4 py-4">

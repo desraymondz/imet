@@ -15,6 +15,7 @@ export type ContactDraft = {
 type ReviewStepProps = {
   draft: ContactDraft
   onChange: (field: keyof ContactDraft, value: string | string[] | null) => void
+  error?: string
 }
 
 // Parse comma-separated tags into a list of keywords
@@ -23,13 +24,18 @@ function parseKeywords(text: string): string[] | null {
   return items.length > 0 ? items : null
 }
 
-export default function ReviewStep({ draft, onChange }: ReviewStepProps) {
+export default function ReviewStep({ draft, onChange, error }: ReviewStepProps) {
   // The keywords text showed in the keywords input
   const [keywordsText, setKeywordsText] = useState(() => (draft.keywords ?? []).join(', '))
 
   return (
     <div className="flex flex-col gap-5">
       <h1>Review</h1>
+
+      {/* Error message */}
+      {error ? (
+        <p className="text-error">{error}</p>
+      ) : null}
 
       {/* Profile */}
       <div className="flex flex-col items-center gap-3 pt-2 text-center">

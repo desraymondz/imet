@@ -11,7 +11,7 @@ export default function NotesStep({ value, onChange, error }: NotesStepProps) {
 
       {/* Error message */}
       {error ? (
-        <p className="text-[var(--danger)]">{error}</p>
+        <p className="text-error">{error}</p>
       ) : null}
 
       {/* Notes input */}
