@@ -178,7 +178,7 @@ export default function NewContactPage() {
       setStep(2)
     } catch {
       // Set the error message
-      setError('Could not read the image. Try another photo or skip this step.')
+      setError('Could not read the image. Try another image or skip this step.')
     } finally {
       // Set the loading state to false
       setIsLoading(false)
@@ -267,7 +267,7 @@ export default function NewContactPage() {
   }
 
   // Only pass errors to the active step
-  const photoError = step === 1 ? error : ''
+  const imageError = step === 1 ? error : ''
   const voiceError = step === 2 ? error : ''
   const notesError = step === 3 ? error : ''
   const reviewError = step === 4 ? error : ''
@@ -282,12 +282,12 @@ export default function NewContactPage() {
 
       {/* Step content */}
       <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-5">
-        {/* Photo step */}
+        {/* Image step */}
         {step === 1 ? (
           <PhotoStep
             previewUrl={previewUrl}
             onImageSelect={setImageFile}
-            error={photoError}
+            error={imageError}
           />
         ) : null}
 
@@ -320,7 +320,7 @@ export default function NewContactPage() {
 
       {/* Common bottom actions */}
       <FixedBottomBar>
-        {/* Photo step bottom actions */}
+        {/* Image step bottom actions */}
         {step === 1 ? (
           <div className="flex flex-col gap-3">
             <NeutralButton label="Skip" onClick={handleSkip} />

@@ -70,7 +70,7 @@ export default function PhotoStep({ previewUrl, onImageSelect, error }: PhotoSte
         onChange={handleFileChange}
       />
 
-      {/* Photo step tip */}
+      {/* Image step tip */}
       <StepTip>Text on the image is extracted automatically</StepTip>
 
       {/* Error message */}
