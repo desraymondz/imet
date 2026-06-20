@@ -112,10 +112,7 @@ export default function NewContactPage() {
     formData.append('file', file, file.name)
     
     // Send the image file to the OCR API
-    const response = await api.post('/captures/ocr', formData, {
-      // Set the content type to multipart/form-data
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    const response = await api.post('/captures/ocr', formData)
     
     // Return the extracted text from the response
     return (response.data.text as string) ?? ''
@@ -125,13 +122,11 @@ export default function NewContactPage() {
   async function transcribeAudio(blob: Blob): Promise<string> {
     // Create a new FormData object to send the audio file to the backend
     const formData = new FormData()
-    formData.append('file', blob, 'recording.webm')
+    const filename = blob.type === 'audio/mp4' ? 'recording.mp4' : 'recording.webm'
+    formData.append('file', blob, filename)
     
     // Send the audio file to the ASR API
-    const response = await api.post('/captures/transcribe', formData, {
-      // Set the content type to multipart/form-data
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    const response = await api.post('/captures/transcribe', formData)
 
     // Return the transcript from the response
     return (response.data.transcript as string) ?? ''
