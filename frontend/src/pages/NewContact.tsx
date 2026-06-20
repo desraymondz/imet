@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../libs/api'
@@ -49,9 +49,20 @@ export default function NewContactPage() {
   // Review draft step state
   const [draft, setDraft] = useState<ContactDraft>(emptyDraft)
 
-  // Shared UI state (loading, error)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  // Build step state (LLM calling)
+  const [isBuilding, setIsBuilding] = useState(false)
+
+  // Individual step errors (only show the error if the user is still on that step)
+  const [imageStepError, setImageStepError] = useState('')
+  const [voiceStepError, setVoiceStepError] = useState('')
+  const [notesStepError, setNotesStepError] = useState('')
+  const [reviewStepError, setReviewStepError] = useState('')
+
+  // Track the latest run ID for OCR and ASR so we can ignore previous (outdated) results
+  const ocrRunIdRef = useRef(0)
+  const asrRunIdRef = useRef(0)
+  const ocrPromiseRef = useRef<Promise<void> | null>(null)
+  const asrPromiseRef = useRef<Promise<void> | null>(null)
 
   // Create a preview URL when the user picks an image
   useEffect(() => {
@@ -63,6 +74,77 @@ export default function NewContactPage() {
     setPreviewUrl(url)
     return () => URL.revokeObjectURL(url)
   }, [imageFile])
+
+  // Run OCR in the background when an image is selected
+  useEffect(() => {
+    // Clear the OCR text and error message
+    setOcrText('')
+    setImageStepError('')
+    
+    // If no image is selected, clear the promise ref
+    if (!imageFile) {
+      ocrPromiseRef.current = null
+      return
+    }
+
+    // Increment the run ID for this OCR request
+    const runId = ++ocrRunIdRef.current
+
+    // Create a promise to run the OCR in the background
+    const promise = (async () => {
+      try {
+        // Call the OCR API to extract text from the image
+        const text = (await ocrImage(imageFile)).trim()
+        
+        // If the run ID is still the same, update the OCR text
+        if (ocrRunIdRef.current === runId) setOcrText(text)
+      } catch {
+        // If the run ID is still the same, set the error message
+        if (ocrRunIdRef.current === runId) {
+          setImageStepError('Could not read the image. Try another image or skip this step.')
+          setOcrText('')
+        }
+      }
+    })()
+
+    // Set the promise to the ref to track the latest run ID
+    ocrPromiseRef.current = promise
+  }, [imageFile])
+
+  // Run transcription in the background when a recording is completed
+  useEffect(() => {
+    // Clear the transcript and error message
+    setTranscript('')
+    setVoiceStepError('')
+
+    // If no audio is selected, clear the promise ref
+    if (!audioBlob) {
+      asrPromiseRef.current = null
+      return
+    }
+
+    // Increment the run ID for this transcription request
+    const runId = ++asrRunIdRef.current
+
+    // Create a promise to run the transcription in the background
+    const promise = (async () => {
+      try {
+        // Call the transcription API to transcribe the audio
+        const nextTranscript = (await transcribeAudio(audioBlob)).trim()
+        // If the run ID is still the same, update the transcript
+        if (asrRunIdRef.current === runId) setTranscript(nextTranscript)
+
+      } catch {
+        // If the run ID is still the same, set the error message
+        if (asrRunIdRef.current === runId) {
+          setVoiceStepError('Could not transcribe the recording. You can add notes manually or skip.')
+          setTranscript('')
+        }
+      }
+    })()
+
+    asrPromiseRef.current = promise
+  }, [audioBlob])
 
   // Save the contact and return to the contacts list
   // Reference: https://tanstack.com/query/latest/docs/framework/react/reference/useMutation
@@ -91,14 +173,12 @@ export default function NewContactPage() {
 
   // Skip the current step
   function handleSkip() {
-    // Clear the error message
-    setError('')
     if (step === 1) {
       // Skip the image step and move to the voice step
       setStep(2)
     } else if (step === 2) {
       // Skip voice step and move to the notes step
-      handleVoiceContinue(true)
+      setStep(3)
     } else if (step === 3) {
       // Skip notes step and move to the review step
       handleNotesContinue()
@@ -153,69 +233,25 @@ export default function NewContactPage() {
   }
 
   // Continue to the voice step
-  async function handlePhotoContinue() {
-    // Clear the error message
-    setError('')
-    // If no image is selected, move to the voice step
-    if (!imageFile) {
-      setStep(2)
-      return
-    }
-
-    // Set the loading state to true
-    setIsLoading(true)
-    try {
-      // Extract text from the image
-      const text = (await ocrImage(imageFile)).trim()
-      // Update the OCR text state
-      setOcrText(text)
-      // Move to the voice step
-      setStep(2)
-    } catch {
-      // Set the error message
-      setError('Could not read the image. Try another image or skip this step.')
-    } finally {
-      // Set the loading state to false
-      setIsLoading(false)
-    }
+  function handlePhotoContinue() {
+    setStep(2)
   }
 
   // Continue to the notes step
-  async function handleVoiceContinue(skipTranscribe = false) {
-    // Clear the error message
-    setError('')
-    // Move to the notes step when user skips it
-    if (skipTranscribe) {
-      setStep(3)
-      return
-    }
-
-    // Set the loading state to true
-    setIsLoading(true)
-    try {
-      let finalTranscript = ''
-      // Call the ASR API to transcribe the audio
-      if (audioBlob) {
-        finalTranscript = (await transcribeAudio(audioBlob)).trim()
-      }
-      
-      // Update the transcript state
-      setTranscript(finalTranscript)
-      // Move to the notes step
-      setStep(3)
-    } catch {
-      setError('Could not transcribe the recording. You can add notes manually or skip.')
-    } finally {
-      setIsLoading(false)
-    }
+  function handleVoiceContinue() {
+    setStep(3)
   }
 
   // Continue to the review step
   async function handleNotesContinue() {
-    // Clear the error message
-    setError('')
-    // Set the loading state to true
-    setIsLoading(true)
+    // Clear the notes and review step errors
+    setNotesStepError('')
+    setReviewStepError('')
+
+    // If OCR/ASR are still running, wait here so the LLM uses the latest text
+    await Promise.allSettled([ocrPromiseRef.current, asrPromiseRef.current].filter(Boolean))
+
+    setIsBuilding(true)
     
     try {
       // Call the LLM API to build the contact draft
@@ -226,24 +262,24 @@ export default function NewContactPage() {
       setStep(4)
     } catch {
       // Still land on review so the user can fill fields manually
-      setError('Could not build the profile. Please try again or edit the fields manually.')
+      setReviewStepError('Could not build the profile. Please try again or edit the fields manually.')
       setDraft(emptyDraft())
       // Move to the review step
       setStep(4)
     } finally {
-      setIsLoading(false)
+      setIsBuilding(false)
     }
   }
 
   // Save the contact
   async function handleSave() {
-    setError('')
+    setReviewStepError('')
     
     const name = (draft.display_name ?? '').trim()
 
     // If no name is provided, set the error message and return
     if (!name) {
-      setError('Add a name before saving.')
+      setReviewStepError('Add a name before saving.')
       return
     }
 
@@ -257,15 +293,15 @@ export default function NewContactPage() {
       })
     } catch {
       // Set the error message
-      setError('Could not save this contact. Please try again.')
+      setReviewStepError('Could not save this contact. Please try again.')
     }
   }
 
   // Only pass errors to the active step
-  const imageError = step === 1 ? error : ''
-  const voiceError = step === 2 ? error : ''
-  const notesError = step === 3 ? error : ''
-  const reviewError = step === 4 ? error : ''
+  const imageError = step === 1 ? imageStepError : ''
+  const voiceError = step === 2 ? voiceStepError : ''
+  const notesError = step === 3 ? notesStepError : ''
+  const reviewError = step === 4 ? reviewStepError : ''
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -319,8 +355,8 @@ export default function NewContactPage() {
         {step === 1 ? (
           <div className="flex flex-col gap-3">
             <NeutralButton label="Skip" onClick={handleSkip} />
-            <GradientButton onClick={handlePhotoContinue} disabled={isLoading}>
-              {isLoading ? 'Reading card…' : 'Continue'}
+            <GradientButton onClick={handlePhotoContinue}>
+              Continue
             </GradientButton>
           </div>
         ) : null}
@@ -329,8 +365,8 @@ export default function NewContactPage() {
         {step === 2 ? (
           <div className="flex flex-col gap-3">
             <NeutralButton label="Skip" onClick={handleSkip} />
-            <GradientButton onClick={() => handleVoiceContinue()} disabled={isLoading}>
-              {isLoading ? 'Transcribing…' : 'Continue'}
+            <GradientButton onClick={handleVoiceContinue}>
+              Continue
             </GradientButton>
           </div>
         ) : null}
@@ -339,14 +375,16 @@ export default function NewContactPage() {
         {step === 3 ? (
           <div className="flex flex-col gap-3">
             <NeutralButton label="Skip" onClick={handleSkip} />
-            <GradientButton onClick={handleNotesContinue} disabled={isLoading}>
-              {isLoading ? 'Building profile…' : 'Continue'}
+            {/* Only let the user continue if the LLM is done building the profile */}
+            <GradientButton onClick={handleNotesContinue} disabled={isBuilding}>
+              {isBuilding ? 'Building profile…' : 'Continue'}
             </GradientButton>
           </div>
         ) : null}
 
         {/* Review step bottom actions */}
         {step === 4 ? (
+          // Only let the user save the contact if the backend is done saving
           <GradientButton onClick={handleSave} disabled={saveMutation.isPending}>
             {saveMutation.isPending ? 'Saving…' : 'Save contact'}
           </GradientButton>
