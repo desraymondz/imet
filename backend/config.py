@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     ollama_model_fast: str
     ollama_model_quality: str
 
+    embedding_model: str
+
 @lru_cache
 def get_settings() -> Settings:
     """Cache the settings instance."""

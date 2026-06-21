@@ -26,6 +26,10 @@ ollama pull llama3.2:3b
 
 If you change the model in `.env.local`, pull that model too, e.g. `ollama pull llama3.1:8b`.
 
+**Embeddings (recall / semantic search):**
+
+The API loads `BAAI/bge-base-en-v1.5` via sentence-transformers at startup. On first run, the model is downloaded automatically (~400MB). Expect ~500MB+ extra RAM while the API is running. Override with `EMBEDDING_MODEL` in `.env.local` if needed.
+
 ## Run
 
 **Database (Docker):**
