@@ -1,10 +1,15 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from backend.ai.embeddings.bge import get_embedder
 from backend.db import get_db
 from backend.dependencies import get_current_user
 from backend.models import Contact, User
 from backend.schemas import ContactCreate, ContactOut, ContactUpdate
+
+logger = logging.getLogger(__name__)
 
 # Define the prefix and tags for the contacts router
 router = APIRouter(prefix="/contacts", tags=["contacts"])
@@ -31,6 +36,8 @@ def create_contact(
     db: Session = Depends(get_db),
 ):
     """Create a new contact for the current user"""
+    profile_text = (payload.profile_text or "").strip()
+
     new_contact = Contact(
         owner_id=current_user.id,
         display_name=payload.display_name,
@@ -42,6 +49,15 @@ def create_contact(
         profile_text=payload.profile_text,
         keywords=payload.keywords,
     )
+
+    # Embed profile text for recall search if it exists
+    if profile_text:
+        try:
+            new_contact.profile_embedding = get_embedder().embed_text(profile_text)
+        except Exception as e:
+            logger.warning("Failed to embed profile text for new contact: %s", e)
+    # TODO: handle embedding errors
+
     db.add(new_contact)
     db.commit()
     db.refresh(new_contact)
