@@ -10,6 +10,7 @@ from backend.db import check_db_connection, init_db
 from backend.routers import auth
 from backend.routers import captures
 from backend.routers import contacts
+from backend.routers import recall
 
 
 @asynccontextmanager
@@ -55,6 +56,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(captures.router)
 app.include_router(contacts.router)
+app.include_router(recall.router)
 
 @app.get("/health")
 def health():

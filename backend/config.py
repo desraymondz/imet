@@ -22,6 +22,9 @@ class Settings(BaseSettings):
 
     embedding_model: str
 
+    recall_min_score: float
+    recall_max_candidates: int
+
 @lru_cache
 def get_settings() -> Settings:
     """Cache the settings instance."""

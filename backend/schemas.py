@@ -67,3 +67,19 @@ class ContactOut(BaseModel):
 
     # Config for pydantic to convert database models to pydantic models
     model_config = {"from_attributes": True}
+
+
+class RecallSearchRequest(BaseModel):
+    """Request schema for semantic recall search"""
+    query: str
+
+
+class RecallResultItem(BaseModel):
+    """A contact match returned from recall search"""
+    contact: ContactOut
+    score: float
+
+
+class RecallSearchResponse(BaseModel):
+    """Response schema for recall search results"""
+    results: list[RecallResultItem]
