@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../libs/api.ts'
 import GradientButton from '../components/GradientButton'
@@ -10,8 +9,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
-  async function handleLogin(e: FormEvent) {
-    e.preventDefault()
+  async function handleLogin() {
     try {
       const response = await api.post(
         '/auth/login',
@@ -43,7 +41,13 @@ export default function LoginPage() {
         />
 
         {/* Login form */}
-        <form className="flex flex-col gap-4" onSubmit={handleLogin}>
+        <form
+          className="flex flex-col gap-4"
+          onSubmit={e => {
+            e.preventDefault()
+            void handleLogin()
+          }}
+        >
           {/* Error message */}
           {error && <p className="text-error">{error}</p>}
 
