@@ -83,3 +83,17 @@ class RecallResultItem(BaseModel):
 class RecallSearchResponse(BaseModel):
     """Response schema for recall search results"""
     results: list[RecallResultItem]
+
+
+class RecallFilterCandidate(BaseModel):
+    """A contact candidate passed to the LLM recall filter"""
+    id: int
+    display_name: str | None
+    profile_text: str | None
+    keywords: list[str] | None
+    score: float
+
+
+class RecallFilterOutput(BaseModel):
+    """LLM output for the recall filter step"""
+    contact_ids: list[int]
