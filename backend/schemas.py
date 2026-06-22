@@ -86,9 +86,12 @@ class RecallSearchResponse(BaseModel):
 
 
 class RecallFilterCandidate(BaseModel):
-    """A contact candidate passed to the LLM recall filter"""
+    """A contact candidate passed to the LLM recall filter to build the prompt"""
     id: int
     display_name: str | None
+    company: str | None
+    role: str | None
+    location: str | None
     profile_text: str | None
     keywords: list[str] | None
     score: float
