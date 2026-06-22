@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import LoginPage from './pages/Login.tsx'
 import ContactsPage from './pages/Contacts.tsx'
+import RecallPage from './pages/Recall.tsx'
 import NewContactPage from './pages/NewContact.tsx'
 import AppLayout from './layouts/AppLayout.tsx'
 
@@ -31,8 +32,7 @@ function App() {
         >
           <Route path="/contacts" element={<ContactsPage />} />
           <Route path="/contacts/new" element={<NewContactPage />} />
-          {/* TODO: replace with RecallPage when recall is built */}
-          <Route path="/recall" element={<ContactsPage />} />
+          <Route path="/recall" element={<RecallPage />} />
         </Route>
 
         {/* Redirects to login or contacts based on auth status */}
