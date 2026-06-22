@@ -5,7 +5,7 @@ from ollama import Client
 from pydantic import ValidationError
 
 from backend.config import settings
-from backend.schemas import ContactExtract
+from backend.schemas import ContactExtract, RecallFilterCandidate, RecallFilterOutput
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +124,87 @@ Do not invent facts not present in the input. Use null for unknown fields.
         except ValidationError as e:
             logger.warning("LLM returned invalid contact: %s", e)
             return ContactExtract()
+
+    def filter_recall_matches(
+        self,
+        query: str,
+        candidates: list[RecallFilterCandidate],
+    ) -> list[int] | None:
+        """
+        Filter recall candidates with the LLM.
+        Returns a list of contact IDs in the order of LLM filter
+        """
+        # Return early if there are no candidates
+        if not candidates:
+            return []
+
+        # Build the prompt for each candidate and its fields
+        candidate_lines: list[str] = []
+        for candidate in candidates:
+            name = (candidate.display_name or "").strip() or "Unknown"
+            company = (candidate.company or "").strip() or "none"
+            role = (candidate.role or "").strip() or "none"
+            location = (candidate.location or "").strip() or "none"
+            keywords = ", ".join(candidate.keywords or []) or "none"
+            profile_text = (candidate.profile_text or "").strip() or "none"
+            candidate_lines.append(
+                "\n".join(
+                    [
+                        f"- id: {candidate.id}",
+                        f"  name: {name}",
+                        f"  company: {company}",
+                        f"  role: {role}",
+                        f"  location: {location}",
+                        f"  keywords: {keywords}",
+                        f"  profile_text: {profile_text}",
+                        f"  vector_score: {candidate.score:.4f}",
+                    ]
+                )
+            )
+
+        # Join the candidate blocks with newlines
+        candidates_block = "\n\n".join(candidate_lines)
+
+        # Build the prompt for the LLM to filter the candidates
+        prompt = f"""You are helping someone recall people they have met.
+
+The user asked:
+{query.strip()}
+
+Here are semantic-search candidates retrieved from their contacts:
+
+{candidates_block}
+
+Return contact_ids for the candidates that genuinely match the user's question.
+- Return IDs in best-match order.
+- Return an empty list if none of the candidates truly match.
+- Only use IDs from the candidate list above.
+- Do not invent contacts or facts not supported by the candidate summaries.
+"""
+
+        # Call the LLM to filter recall matches
+        response = self.chat(
+            LLMType.FAST,
+            messages=[{"role": "user", "content": prompt}],
+            response_format=RecallFilterOutput.model_json_schema(),
+        )
+
+        # Parse and validates the response
+        try:
+            parsed = RecallFilterOutput.model_validate_json(response)
+        except ValidationError as e:
+            logger.warning("LLM returned invalid recall filter: %s", e)
+            return None
+
+        # Keep only IDs that were in the candidate list, skip any hallucinated IDs
+        matched_ids: list[int] = []
+        for contact_id in parsed.contact_ids:
+            for candidate in candidates:
+                if candidate.id == contact_id:
+                    matched_ids.append(contact_id)
+                    break
+
+        return matched_ids
 
 
 # Shared LLM instance

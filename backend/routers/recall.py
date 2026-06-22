@@ -1,12 +1,23 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from backend.ai.embeddings.bge import get_embedder
+from backend.ai.llm.ollama import get_llm
 from backend.config import settings
 from backend.db import get_db
 from backend.dependencies import get_current_user
 from backend.models import Contact, User
-from backend.schemas import ContactOut, RecallResultItem, RecallSearchRequest, RecallSearchResponse
+from backend.schemas import (
+    ContactOut,
+    RecallFilterCandidate,
+    RecallResultItem,
+    RecallSearchRequest,
+    RecallSearchResponse,
+)
+
+logger = logging.getLogger(__name__)
 
 # Define the prefix and tags for the recall router
 router = APIRouter(prefix="/recall", tags=["recall"])
@@ -26,7 +37,7 @@ def search_contacts(
     if not query:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Query must not be empty"
+            detail="Query must not be empty",
         )
 
     # Embed the search query
@@ -63,4 +74,39 @@ def search_contacts(
             )
         )
 
-    return RecallSearchResponse(results=results)
+    # Return early if there are no vector candidates
+    if not results:
+        return RecallSearchResponse(results=[])
+
+    # Build candidates for the LLM filter step
+    candidates = [
+        RecallFilterCandidate(
+            id=result.contact.id,
+            display_name=result.contact.display_name,
+            company=result.contact.company,
+            role=result.contact.role,
+            location=result.contact.location,
+            profile_text=result.contact.profile_text,
+            keywords=result.contact.keywords,
+            score=result.score,
+        )
+        for result in results
+    ]
+
+    # Ask LLM to filter the candidates
+    filtered_ids = get_llm().filter_recall_matches(query, candidates)
+
+    # Fall back to vector-only results if LLM filter fails
+    if filtered_ids is None:
+        logger.warning("Recall LLM filter failed, returning vector-only results")
+        return RecallSearchResponse(results=results)
+
+    # Build filtered results in the order from LLM filter
+    filtered_results: list[RecallResultItem] = []
+    for contact_id in filtered_ids:
+        for result in results:
+            if result.contact.id == contact_id:
+                filtered_results.append(result)
+                break
+
+    return RecallSearchResponse(results=filtered_results)
