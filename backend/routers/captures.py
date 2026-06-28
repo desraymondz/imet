@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+import logging
 
 from backend.dependencies import get_current_user
 from backend.models import User
@@ -6,6 +7,8 @@ from backend.schemas import BuildContactRequest, ContactExtract
 from backend.ai.asr.faster_whisper import get_asr
 from backend.ai.ocr.easyocr import get_ocr
 from backend.ai.llm.ollama import get_llm
+
+logger = logging.getLogger(__name__)
 
 # Define the prefix and tags for the captures router
 router = APIRouter(prefix="/captures", tags=["captures"])
@@ -49,6 +52,8 @@ async def transcribe_audio(
             detail=f"Transcription failed: {str(e)}",
         )
 
+    logger.info("ASR output:\n%s", transcript or "(empty)")
+
     return {
         "transcript": transcript
     }
@@ -88,6 +93,8 @@ async def ocr_image(
             detail=f"OCR failed: {str(e)}",
         )
 
+    logger.info("OCR output:\n%s", text or "(empty)")
+
     return {
         "text": text
     }
@@ -99,6 +106,15 @@ def build_contact(
     current_user: User = Depends(get_current_user),
 ):
     """Build a contact profile from transcript, OCR text, and free-form notes."""
+    logger.info(
+        "LLM input\n"
+        "transcript:\n%s\n\n"
+        "ocr:\n%s\n\n"
+        "notes:\n%s",
+        payload.transcript or "(empty)",
+        payload.ocr_text or "(empty)",
+        payload.free_form_text or "(empty)",
+    )
     try:
         # Build the contact
         contact = get_llm().build_contact(

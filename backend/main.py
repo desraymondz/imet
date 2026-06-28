@@ -1,16 +1,24 @@
 from contextlib import asynccontextmanager
+import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.ai.asr.faster_whisper import get_asr
 from backend.ai.embeddings.bge import get_embedder
+from backend.config import settings
 from backend.db import check_db_connection, init_db
 
 from backend.routers import auth
 from backend.routers import captures
 from backend.routers import contacts
 from backend.routers import recall
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG if settings.debug else logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 
 
 @asynccontextmanager

@@ -1,4 +1,5 @@
 from enum import Enum
+import json
 import logging
 
 from ollama import Client
@@ -8,6 +9,67 @@ from backend.config import settings
 from backend.schemas import ContactExtract, RecallFilterCandidate, RecallFilterOutput
 
 logger = logging.getLogger(__name__)
+
+# Flat schema for contact extraction
+CONTACT_OLLAMA_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "display_name": {"type": "string"},
+        "email": {"type": "string"},
+        "phone": {"type": "string"},
+        "company": {"type": "string"},
+        "role": {"type": "string"},
+        "location": {"type": "string"},
+        "profile_text": {"type": "string"},
+        "keywords": {"type": "array", "items": {"type": "string"}},
+    },
+}
+
+# Flat schema for recall filter
+RECALL_FILTER_OLLAMA_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "contact_ids": {"type": "array", "items": {"type": "integer"}},
+    },
+    "required": ["contact_ids"],
+}
+
+# Strings that are considered null or empty
+_NULL_STRINGS = {"", "null", "none", "unknown", "n/a"}
+
+def _strip_json_fences(content: str) -> str:
+    """Helper function to strip JSON fences (```json) from the response"""
+    text = content.strip()
+    if not text.startswith("```"):
+        return text
+    text = text.removeprefix("```json").removeprefix("```").strip()
+    if text.endswith("```"):
+        text = text[:-3].strip()
+    return text
+
+
+def _normalise_contact_data(data: dict) -> dict:
+    """Helper function to normalise contact data (convert to lowercase, strip whitespace, etc.)"""
+    # Initialise an empty dictionary to store the normalised data
+    normalised: dict = {}
+    # Iterate over the fields in the ContactExtract schema
+    for field in ContactExtract.model_fields:
+        value = data.get(field)
+        # If the field is keywords, normalise the list of keywords
+        if field == "keywords":
+            if isinstance(value, list):
+                keywords = [item.strip() for item in value if isinstance(item, str) and item.strip()]
+                normalised[field] = keywords or None
+            else:
+                normalised[field] = None
+            continue
+        # If the field is a string, normalise the string
+        if isinstance(value, str):
+            cleaned = value.strip()
+            normalised[field] = None if cleaned.lower() in _NULL_STRINGS else cleaned
+        else:
+            normalised[field] = value
+    return normalised
 
 
 class LLMType(str, Enum):
@@ -34,7 +96,7 @@ class OllamaLLM:
         llm_type: LLMType,
         messages: list[dict[str, str]],
         *,
-        response_format: dict | None = None,
+        response_format: dict | str | None = None,
     ) -> str:
         """
         Chat with the LLM using Ollama API and return the response message content.
@@ -50,14 +112,41 @@ class OllamaLLM:
 
         # Call Ollama API to generate a chat completion
         # Reference: https://github.com/ollama/ollama/blob/main/docs/api.md#generate-a-chat-completion
+        # Set the temperature to 0.1 for more deterministic responses
         # TODO: explore stream response
         response = self.client.chat(
             model=self.models[llm_type],
             messages=messages,
             format=response_format,
             think=False,
+            options={"temperature": 0.1} if response_format is not None else None,
         )
-        return response.message.content
+        
+        # Log the response message content
+        content = response.message.content or ""
+        logger.info(
+            "LLM response (model=%s, structured=%s):\n%s",
+            self.models[llm_type],
+            response_format is not None,
+            content or "(empty)",
+        )
+        return content
+
+    def _parse_contact_response(self, response: str) -> ContactExtract:
+        """Helper function to parse the contact response from the LLM"""
+        # Strip JSON fences (```json) from the response
+        cleaned = _strip_json_fences(response)
+        if cleaned.strip() in ("", "{}", "{ }"):
+            raise ValueError("LLM returned empty JSON object")
+
+        # Load the response as a JSON object
+        data = json.loads(cleaned)
+        # If the response is not a JSON object, raise an error
+        if not isinstance(data, dict):
+            raise ValueError("LLM response is not a JSON object")
+
+        # Normalise the contact data and return the ContactExtract schema
+        return ContactExtract.model_validate(_normalise_contact_data(data))
 
     def build_contact(
         self,
@@ -110,21 +199,33 @@ Use the voice note mainly for personal context, interests, and profile_text.
 Use free-form notes mainly to fill gaps or add context when the other sources are sparse.
 If multiple sources mention the same field, prefer image text for structured fields.
 Do not invent facts not present in the input. Use null for unknown fields.
+Respond with valid JSON only. Use empty strings for unknown fields.
 """
 
-        # Call the LLM to extract the contact
-        response = self.chat(
-            LLMType.FAST,
-            messages=[{"role": "user", "content": prompt}],
-            response_format=ContactExtract.model_json_schema(),
-        )
+        # Build the messages for the LLM
+        messages = [{"role": "user", "content": prompt}]
 
-        # Parse the response
-        try:
-            return ContactExtract.model_validate_json(response)
-        except ValidationError as e:
-            logger.warning("LLM returned invalid contact: %s", e)
-            return ContactExtract()
+        # Try to parse the contact response from the LLM
+        for attempt, response_format in enumerate([CONTACT_OLLAMA_SCHEMA, "json"], start=1):
+            # Call the LLM
+            response = self.chat(
+                LLMType.FAST,
+                messages=messages,
+                response_format=response_format,
+            )
+            try:
+                # Parse the contact response from the LLM
+                return self._parse_contact_response(response)
+            except (ValidationError, ValueError, json.JSONDecodeError) as e:
+                # Log the error
+                logger.warning(
+                    "LLM contact parse failed",
+                    attempt,
+                    response_format if isinstance(response_format, str) else "schema",
+                    e,
+                )
+
+        return ContactExtract()
 
     def filter_recall_matches(
         self,
@@ -181,20 +282,40 @@ Return contact_ids for the candidates that genuinely match the user's question.
 - Return an empty list if none of the candidates truly match.
 - Only use IDs from the candidate list above.
 - Do not invent contacts or facts not supported by the candidate summaries.
+Respond with valid JSON only.
 """
 
-        # Call the LLM to filter recall matches
-        response = self.chat(
-            LLMType.FAST,
-            messages=[{"role": "user", "content": prompt}],
-            response_format=RecallFilterOutput.model_json_schema(),
-        )
+        # Build the messages for the LLM
+        messages = [{"role": "user", "content": prompt}]
 
-        # Parse and validates the response
-        try:
-            parsed = RecallFilterOutput.model_validate_json(response)
-        except ValidationError as e:
-            logger.warning("LLM returned invalid recall filter: %s", e)
+        # Try to parse the recall filter response from the LLM
+        for attempt, response_format in enumerate([RECALL_FILTER_OLLAMA_SCHEMA, "json"], start=1):
+            # Call the LLM
+            response = self.chat(
+                LLMType.FAST,
+                messages=messages,
+                response_format=response_format,
+            )
+            try:
+                # Strip JSON fences (```json) from the response
+                cleaned = _strip_json_fences(response)
+                # Parse the recall filter response from the LLM
+                parsed = RecallFilterOutput.model_validate_json(cleaned)
+                break
+            except ValidationError as e:
+                # Log the error
+                logger.warning(
+                    "LLM recall parse failed",
+                    attempt,
+                    response_format if isinstance(response_format, str) else "schema",
+                    e,
+                )
+                parsed = None
+        else:
+            return None
+
+        
+        if parsed is None:
             return None
 
         # Keep only IDs that were in the candidate list, skip any hallucinated IDs
