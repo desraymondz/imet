@@ -1,13 +1,13 @@
 # Pydantic schemas for the API requests and responses
 
 from datetime import datetime
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
 
 class ContactCreate(BaseModel):
     """Request schema for creating a contact"""
     display_name: str | None = None
-    email: EmailStr | None = None
+    email: str | None = None
     phone: str | None = None
     company: str | None = None
     role: str | None = None
@@ -21,7 +21,7 @@ class ContactCreate(BaseModel):
 class ContactExtract(BaseModel):
     """Response schema for LLM-extracted contact fields from capture inputs"""
     display_name: str | None = None
-    email: EmailStr | None = None
+    email: str | None = None
     phone: str | None = None
     company: str | None = None
     role: str | None = None
@@ -40,7 +40,7 @@ class BuildContactRequest(BaseModel):
 class ContactUpdate(BaseModel):
     """Request schema for updating a contact"""
     display_name: str | None = None
-    email: EmailStr | None = None
+    email: str | None = None
     phone: str | None = None
     company: str | None = None
     role: str | None = None
