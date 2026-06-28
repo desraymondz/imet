@@ -21,10 +21,10 @@ Start the Ollama server, then pull models separately before first use (must matc
 
 ```bash
 ollama serve
-ollama pull llama3.2:3b
+ollama pull qwen3.5:0.8b
 ```
 
-If you change the model in `.env.local`, pull that model too, e.g. `ollama pull llama3.1:8b`.
+If you change the model in `.env.local`, pull that model too, e.g. `ollama pull llama3.2:3b`.
 
 **Embeddings (recall / semantic search):**
 

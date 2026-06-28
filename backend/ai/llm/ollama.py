@@ -55,6 +55,7 @@ class OllamaLLM:
             model=self.models[llm_type],
             messages=messages,
             format=response_format,
+            think=False,
         )
         return response.message.content
 
