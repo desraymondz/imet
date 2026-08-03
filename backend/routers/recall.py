@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from backend.ai.embeddings.bge import get_embedder
 from backend.ai.llm.ollama import get_llm
+from backend.ai.retrieval.fts import search_contacts_fts
 from backend.config import settings
 from backend.db import get_db
 from backend.dependencies import get_current_user
@@ -21,6 +22,44 @@ logger = logging.getLogger(__name__)
 
 # Define the prefix and tags for the recall router
 router = APIRouter(prefix="/recall", tags=["recall"])
+
+
+@router.post("/fts", response_model=RecallSearchResponse)
+def search_contacts_lexical(
+    payload: RecallSearchRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Search contacts by Postgres full-text search on profile_text (via search_tsv)"""
+    # Strip whitespace from the query
+    query = payload.query.strip()
+
+    # If no query, raise an error
+    if not query:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Query must not be empty",
+        )
+
+    # Search the contacts by the query
+    rows = search_contacts_fts(
+        db=db,
+        owner_id=current_user.id,
+        keywords=query,
+        limit=settings.recall_max_candidates,
+    )
+
+    # Convert the rows to RecallResultItem objects
+    results = [
+        RecallResultItem(
+            contact=ContactOut.model_validate(contact),
+            score=round(rank, 4),
+        )
+        for contact, rank in rows
+    ]
+
+    # Return the results
+    return RecallSearchResponse(results=results)
 
 
 @router.post("/search", response_model=RecallSearchResponse)
