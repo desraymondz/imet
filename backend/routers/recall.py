@@ -155,7 +155,6 @@ def search_contacts(
             location=result.contact.location,
             profile_text=result.contact.profile_text,
             keywords=result.contact.keywords,
-            score=result.score,
         )
         for result in results
     ]

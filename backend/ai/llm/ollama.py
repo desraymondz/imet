@@ -395,7 +395,6 @@ Respond with valid JSON only.
                         f"  location: {location}",
                         f"  keywords: {keywords}",
                         f"  profile_text: {profile_text}",
-                        f"  vector_score: {candidate.score:.4f}",
                     ]
                 )
             )
@@ -409,7 +408,7 @@ Respond with valid JSON only.
 The user asked:
 {query.strip()}
 
-Here are semantic-search candidates retrieved from their contacts:
+Here are candidate contacts retrieved from their network:
 
 {candidates_block}
 

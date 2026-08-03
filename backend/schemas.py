@@ -94,7 +94,6 @@ class RecallFilterCandidate(BaseModel):
     location: str | None
     profile_text: str | None
     keywords: list[str] | None
-    score: float
 
 
 class RecallFilterOutput(BaseModel):
