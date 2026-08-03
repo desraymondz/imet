@@ -3,7 +3,8 @@
 from datetime import datetime
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import ARRAY, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import ARRAY, Computed, DateTime, ForeignKey, Index, Integer, String, Text, func
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.db import Base
@@ -33,6 +34,10 @@ class Contact(Base):
     """A contact (person) the user is tracking"""
 
     __tablename__ = "contacts"
+    # GIN index on the search_tsv column
+    __table_args__ = (
+        Index("contacts_search_tsv_gin", "search_tsv", postgresql_using="gin"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     owner_id: Mapped[int] = mapped_column(
@@ -49,7 +54,13 @@ class Contact(Base):
 
     # LLM-generated natural language summary (to be embedded and retrieved by semantic search)
     profile_text: Mapped[str | None] = mapped_column(Text)
-    
+
+    # Full-text search document derived from profile_text
+    search_tsv: Mapped[str | None] = mapped_column(
+        TSVECTOR,
+        Computed("to_tsvector('english', coalesce(profile_text, ''))", persisted=True),
+    )
+
     # Embedding of the profile text (to be used for semantic search)
     profile_embedding: Mapped[list[float] | None] = mapped_column(Vector(EMBEDDING_DIM), nullable=True)
 
