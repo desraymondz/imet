@@ -6,7 +6,12 @@ from ollama import Client
 from pydantic import ValidationError
 
 from backend.config import settings
-from backend.schemas import ContactExtract, RecallFilterCandidate, RecallFilterOutput
+from backend.schemas import (
+    ContactExtract,
+    RecallFilterCandidate,
+    RecallFilterOutput,
+    RecallQueryPlan,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +37,17 @@ RECALL_FILTER_OLLAMA_SCHEMA = {
         "contact_ids": {"type": "array", "items": {"type": "integer"}},
     },
     "required": ["contact_ids"],
+}
+
+# Flat schema for recall query understanding
+RECALL_QUERY_PLAN_OLLAMA_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "in_scope": {"type": "boolean"},
+        "keywords": {"type": "array", "items": {"type": "string"}},
+        "hyde_rewrite": {"type": "string"},
+    },
+    "required": ["in_scope", "keywords", "hyde_rewrite"],
 }
 
 # Strings that are considered null or empty
@@ -226,6 +242,126 @@ Respond with valid JSON only. Use empty strings for unknown fields.
                 )
 
         return ContactExtract()
+
+    def understand_recall_query(self, query: str) -> RecallQueryPlan:
+        """
+        Understand a recall query with scope check, FTS keywords, and HyDE rewrite values.
+        If the LLM response fails to parse, falls back to treating the raw query as in-scope.
+        """
+        # Clean the query
+        cleaned_query = query.strip()
+        # Split the query into keywords and set fallback keywords
+        fallback_keywords = [token for token in cleaned_query.split() if token]
+        # Set the fallback recall query plan
+        fallback = RecallQueryPlan(
+            in_scope=True,
+            keywords=fallback_keywords or [cleaned_query],
+            hyde_rewrite=cleaned_query,
+        )
+
+        if not cleaned_query:
+            return RecallQueryPlan(in_scope=False, keywords=[], hyde_rewrite="")
+
+        # Build the prompt for the LLM to understand the recall query
+        prompt = f"""You are helping someone search their personal contact network.
+
+The user asked:
+{cleaned_query}
+
+Produce a query plan with:
+- in_scope: true if they are trying to recall or find a person they met / know;
+  false for unrelated questions (weather, math, coding help, general trivia, etc.).
+- keywords: short lexical search terms as a JSON string array for full-text search
+  (names, companies, roles, places, hobbies). Empty array if out of scope.
+- hyde_rewrite: 1-2 sentences written like a contact profile_text that would match
+  what they are looking for (Hypothetical Document Embedding). Empty string if out of scope.
+
+Example:
+User asked: Who did I meet that likes hiking?
+Output:
+{{"in_scope": true, "keywords": ["hiking", "outdoors"], "hyde_rewrite": "Enjoys hiking and outdoor activities. Often talks about trails and weekend mountain trips."}}
+
+Respond with valid JSON only.
+"""
+
+        # Build the messages for the LLM
+        messages = [{"role": "user", "content": prompt}]
+
+        # Try to parse the recall query plan from the LLM
+        for attempt, response_format in enumerate(
+            [RECALL_QUERY_PLAN_OLLAMA_SCHEMA, "json"],
+            start=1,
+        ):
+            # Call the LLM
+            response = self.chat(
+                LLMType.FAST,
+                messages=messages,
+                response_format=response_format,
+            )
+            try:
+                # Strip JSON fences (```json) from the response
+                cleaned = _strip_json_fences(response)
+                # Parse the recall query plan from the LLM
+                data = json.loads(cleaned)
+                # If the response is not a JSON object, raise an error
+                if not isinstance(data, dict):
+                    raise ValueError("LLM response is not a JSON object")
+
+                # Accept list[str], or a single string if the model slips (e.g. "hiking, outdoors")
+                raw_keywords = data.get("keywords", [])
+                # If the keywords are a string, split the string into keywords and strip whitespace
+                if isinstance(raw_keywords, str):
+                    # Split the string into keywords and strip whitespace
+                    keywords = [token for token in raw_keywords.split() if token.strip()]
+                # If the keywords are a list, convert the list of strings to a list of keywords and strip whitespace
+                elif isinstance(raw_keywords, list):
+                    # Convert the list of strings to a list of keywords and strip whitespace
+                    keywords = [
+                        item.strip()
+                        for item in raw_keywords
+                        if isinstance(item, str) and item.strip()
+                    ]
+                else:
+                    # If the keywords are not a string or list, set an empty list
+                    keywords = []
+
+                # Get the HyDE rewrite value
+                hyde_rewrite = data.get("hyde_rewrite", "")
+                # If the HyDE rewrite value is not a string, set an empty string
+                if not isinstance(hyde_rewrite, str):
+                    hyde_rewrite = ""
+                # Strip whitespace from the HyDE rewrite value
+                hyde_rewrite = hyde_rewrite.strip()
+
+                # Get the in-scope value
+                in_scope = bool(data.get("in_scope", False))
+
+                # Keep retrieval usable even if the model leaves fields blank (e.g. keywords or hyde_rewrite)
+                if in_scope:
+                    # If the keywords are empty, set the fallback keywords
+                    if not keywords:
+                        keywords = fallback_keywords or [cleaned_query]
+                    # If the HyDE rewrite value is empty, set the fallback HyDE rewrite value
+                    if not hyde_rewrite:
+                        hyde_rewrite = cleaned_query
+
+                # Return the recall query plan
+                return RecallQueryPlan(
+                    in_scope=in_scope,
+                    keywords=keywords,
+                    hyde_rewrite=hyde_rewrite,
+                )
+            except (ValidationError, ValueError, json.JSONDecodeError, TypeError) as e:
+                # Log the error
+                logger.warning(
+                    "LLM recall query plan parse failed (attempt=%s, format=%s): %s",
+                    attempt,
+                    response_format if isinstance(response_format, str) else "schema",
+                    e,
+                )
+
+        logger.warning("Recall query understanding failed, using raw-query fallback")
+        return fallback
 
     def filter_recall_matches(
         self,

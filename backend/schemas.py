@@ -100,3 +100,13 @@ class RecallFilterCandidate(BaseModel):
 class RecallFilterOutput(BaseModel):
     """LLM output for the recall filter step"""
     contact_ids: list[int]
+
+
+class RecallQueryPlan(BaseModel):
+    """LLM output for recall query understanding (Phase 1)"""
+    # Whether the query is in scope for the current user
+    in_scope: bool
+    # Lexical terms for Postgres FTS
+    keywords: list[str]
+    # Hypothetical profile blurb to embed (HyDE) for semantic recall
+    hyde_rewrite: str
