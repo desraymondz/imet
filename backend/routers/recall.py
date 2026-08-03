@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from backend.ai.embeddings.bge import get_embedder
 from backend.ai.llm.ollama import get_llm
 from backend.ai.retrieval.fts import search_contacts_fts
+from backend.ai.retrieval.hybrid import merge_recall_candidates
 from backend.config import settings
 from backend.db import get_db
 from backend.dependencies import get_current_user
@@ -68,7 +69,11 @@ def search_contacts(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Search contacts by semantic similarity based on user input"""
+    """
+    Hybrid recall: query understanding to extract in_scope, keywords, hyde_rewrite
+    FTS and vector retrieval to get candidate contacts
+    LLM filter to get the final results
+    """
     # Get the query from the payload
     query = payload.query.strip()
 
@@ -92,14 +97,21 @@ def search_contacts(
     if not plan.in_scope:
         return RecallSearchResponse(results=[])
 
-    # Embed the HyDE rewrite for semantic search
-    query_vector = get_embedder().embed_text(plan.hyde_rewrite)
+    # Phase 2a: lexical retrieve (Postgres FTS on profile_text)
+    fts_query = " ".join(plan.keywords).strip()
+    fts_results = search_contacts_fts(
+        db=db,
+        owner_id=current_user.id,
+        keywords=fts_query,
+        limit=settings.recall_max_candidates,
+    )
 
+    # Phase 2b: semantic retrieve (embed HyDE rewrite, rank by cosine similarity)
+    query_vector = get_embedder().embed_text(plan.hyde_rewrite)
     # Rank contacts by cosine distance (lower = more similar)
     distance = Contact.profile_embedding.cosine_distance(query_vector).label("distance")
-
     # Get the user's embedded contacts ordered by similarity
-    rows = (
+    vector_rows = (
         db.query(Contact, distance)
         .filter(
             Contact.owner_id == current_user.id,
@@ -110,27 +122,30 @@ def search_contacts(
         .all()
     )
 
-    # Convert distance to similarity score and apply minimum threshold
-    results: list[RecallResultItem] = []
-    for contact, raw_distance in rows:
+    # Initialise a list to store the vector results
+    vector_results: list[tuple[Contact, float]] = []
+    for contact, raw_distance in vector_rows:
         score = 1 - float(raw_distance)
 
         # Skip contacts below the minimum similarity threshold
         if score < settings.recall_min_score:
             continue
+        vector_results.append((contact, score))
 
-        results.append(
-            RecallResultItem(
-                contact=ContactOut.model_validate(contact),
-                score=round(score, 4),
-            )
-        )
+    # Merge vector and FTS results by contact id
+    results = merge_recall_candidates(vector_results=vector_results, fts_results=fts_results)
+    logger.info(
+        "Recall retrieve: fts=%s vector=%s merged=%s",
+        len(fts_results),
+        len(vector_results),
+        len(results),
+    )
 
-    # Return early if there are no vector candidates
+    # Return early if there are no candidates
     if not results:
         return RecallSearchResponse(results=[])
 
-    # Build candidates for the LLM filter step
+    # Phase 3: LLM rerank / filter against the original user query
     candidates = [
         RecallFilterCandidate(
             id=result.contact.id,
@@ -148,9 +163,9 @@ def search_contacts(
     # Ask LLM to filter the candidates
     filtered_ids = get_llm().filter_recall_matches(query, candidates)
 
-    # Fall back to vector-only results if LLM filter fails
+    # Fall back to merged retrieval results if LLM filter fails
     if filtered_ids is None:
-        logger.warning("Recall LLM filter failed, returning vector-only results")
+        logger.warning("Recall LLM filter failed, returning merged retrieval results")
         return RecallSearchResponse(results=results)
 
     # Build filtered results in the order from LLM filter
