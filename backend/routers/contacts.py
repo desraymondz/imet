@@ -29,6 +29,36 @@ def _get_owned_contact(db: Session, contact_id: int, user_id: int) -> Contact:
     return contact
 
 
+def _apply_profile_embedding(contact: Contact) -> None:
+    """
+    Apply or clear profile embedding from contact.profile_text
+
+    If profile_text is not empty but fails to embed, raise 503
+    So text and embedding stay consistent on update.
+    """
+    # Get the profile text from the contact
+    profile_text = (contact.profile_text or "").strip()
+    # If the profile text is empty, clear the profile embedding
+    if not profile_text:
+        contact.profile_embedding = None
+        return
+
+    # Try to embed the profile text
+    try:
+        contact.profile_embedding = get_embedder().embed_text(profile_text)
+    except Exception as e:
+        # If the profile text fails to embed, raise an exception
+        logger.exception(
+            "Failed to embed profile text for contact id=%s",
+            getattr(contact, "id", None),
+        )
+        # Raise a 503 error
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Could not index contact for search. Please try again.",
+        ) from e
+
+
 @router.post("/", response_model=ContactOut, status_code=status.HTTP_201_CREATED)
 def create_contact(
     payload: ContactCreate,
@@ -36,8 +66,6 @@ def create_contact(
     db: Session = Depends(get_db),
 ):
     """Create a new contact for the current user"""
-    profile_text = (payload.profile_text or "").strip()
-
     new_contact = Contact(
         owner_id=current_user.id,
         display_name=payload.display_name,
@@ -51,12 +79,7 @@ def create_contact(
     )
 
     # Embed profile text for recall search if it exists
-    if profile_text:
-        try:
-            new_contact.profile_embedding = get_embedder().embed_text(profile_text)
-        except Exception as e:
-            logger.warning("Failed to embed profile text for new contact: %s", e)
-    # TODO: handle embedding errors
+    _apply_profile_embedding(new_contact)
 
     db.add(new_contact)
     db.commit()
@@ -105,19 +128,7 @@ def update_contact(
 
     # Re-embed or clear profile embedding when updated
     if "profile_text" in updates:
-        profile_text = (contact.profile_text or "").strip()
-        if profile_text:
-            try:
-                contact.profile_embedding = get_embedder().embed_text(profile_text)
-            except Exception as e:
-                logger.warning(
-                    "Failed to re-embed profile text for contact %s: %s",
-                    contact_id,
-                    e,
-                )
-                # TODO: handle embedding errors
-        else:
-            contact.profile_embedding = None
+        _apply_profile_embedding(contact)
 
     db.commit()
     db.refresh(contact)
