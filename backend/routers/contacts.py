@@ -99,8 +99,25 @@ def update_contact(
     contact = _get_owned_contact(db, contact_id, current_user.id)
 
     # Update the contact with the new values
-    for field, value in payload.model_dump(exclude_unset=True).items():
+    updates = payload.model_dump(exclude_unset=True)
+    for field, value in updates.items():
         setattr(contact, field, value)
+
+    # Re-embed or clear profile embedding when updated
+    if "profile_text" in updates:
+        profile_text = (contact.profile_text or "").strip()
+        if profile_text:
+            try:
+                contact.profile_embedding = get_embedder().embed_text(profile_text)
+            except Exception as e:
+                logger.warning(
+                    "Failed to re-embed profile text for contact %s: %s",
+                    contact_id,
+                    e,
+                )
+                # TODO: handle embedding errors
+        else:
+            contact.profile_embedding = None
 
     db.commit()
     db.refresh(contact)

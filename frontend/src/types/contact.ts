@@ -2,11 +2,14 @@ export interface Contact {
   id: number
   display_name: string | null
   email: string | null
+  phone: string | null
   company: string | null
   role: string | null
+  location: string | null
   profile_text: string | null
   keywords: string[] | null
   created_at: string
+  updated_at: string
 }
 
 export interface RecallResult {
