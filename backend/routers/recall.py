@@ -87,6 +87,11 @@ def search_contacts(
 
     # Phase 1: understand query (scope, FTS keywords, HyDE rewrite)
     plan = get_llm().understand_recall_query(query)
+    # Return error status on LLM/parse failure
+    if plan is None:
+        logger.warning("Recall query understanding failed; returning error status")
+        return RecallSearchResponse(status="error", results=[])
+
     logger.info(
         "Recall query plan: in_scope=%s keywords=%r hyde_rewrite=%r",
         plan.in_scope,

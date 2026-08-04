@@ -243,22 +243,19 @@ Respond with valid JSON only. Use empty strings for unknown fields.
 
         return ContactExtract()
 
-    def understand_recall_query(self, query: str) -> RecallQueryPlan:
+    def understand_recall_query(self, query: str) -> RecallQueryPlan | None:
         """
-        Understand a recall query with scope check, FTS keywords, and HyDE rewrite values.
-        If the LLM response fails to parse, falls back to treating the raw query as in-scope.
+        Understand a recall query with scope check, FTS keywords, and HyDE rewrite.
+
+        Returns None on LLM/parse failure
+        Empty input is treated as out of scope.
         """
         # Clean the query
         cleaned_query = query.strip()
-        # Split the query into keywords and set fallback keywords
+        # Extract keywords from the query as a fallback when the keywords are empty
         fallback_keywords = [token for token in cleaned_query.split() if token]
-        # Set the fallback recall query plan
-        fallback = RecallQueryPlan(
-            in_scope=True,
-            keywords=fallback_keywords or [cleaned_query],
-            hyde_rewrite=cleaned_query,
-        )
 
+        # If the query is empty, return an empty recall query plan
         if not cleaned_query:
             return RecallQueryPlan(in_scope=False, keywords=[], hyde_rewrite="")
 
@@ -292,13 +289,13 @@ Respond with valid JSON only.
             [RECALL_QUERY_PLAN_OLLAMA_SCHEMA, "json"],
             start=1,
         ):
-            # Call the LLM
-            response = self.chat(
-                LLMType.FAST,
-                messages=messages,
-                response_format=response_format,
-            )
             try:
+                # Call the LLM
+                response = self.chat(
+                    LLMType.FAST,
+                    messages=messages,
+                    response_format=response_format,
+                )
                 # Strip JSON fences (```json) from the response
                 cleaned = _strip_json_fences(response)
                 # Parse the recall query plan from the LLM
@@ -336,7 +333,7 @@ Respond with valid JSON only.
                 # Get the in-scope value
                 in_scope = bool(data.get("in_scope", False))
 
-                # Keep retrieval usable even if the model leaves fields blank (e.g. keywords or hyde_rewrite)
+                # Keep retrieval usable even if the model leaves fields blank (not a failure)
                 if in_scope:
                     # If the keywords are empty, set the fallback keywords
                     if not keywords:
@@ -351,17 +348,17 @@ Respond with valid JSON only.
                     keywords=keywords,
                     hyde_rewrite=hyde_rewrite,
                 )
-            except (ValidationError, ValueError, json.JSONDecodeError, TypeError) as e:
-                # Log the error
+            except (ValidationError, ValueError, json.JSONDecodeError, TypeError, Exception) as e:
+                # Log the error (parse or LLM failure)
                 logger.warning(
-                    "LLM recall query plan parse failed (attempt=%s, format=%s): %s",
+                    "LLM recall query plan failed (attempt=%s, format=%s): %s",
                     attempt,
                     response_format if isinstance(response_format, str) else "schema",
                     e,
                 )
 
-        logger.warning("Recall query understanding failed, using raw-query fallback")
-        return fallback
+        logger.warning("Recall query understanding failed, returning None on failure")
+        return None
 
     def filter_recall_matches(
         self,
