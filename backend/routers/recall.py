@@ -59,8 +59,9 @@ def search_contacts_lexical(
         for contact, rank in rows
     ]
 
-    # Return the results
-    return RecallSearchResponse(results=results)
+    if not results:
+        return RecallSearchResponse(status="no_matches", results=[])
+    return RecallSearchResponse(status="ok", results=results)
 
 
 @router.post("/search", response_model=RecallSearchResponse)
@@ -95,7 +96,7 @@ def search_contacts(
 
     # Out-of-scope questions return no contacts
     if not plan.in_scope:
-        return RecallSearchResponse(results=[])
+        return RecallSearchResponse(status="out_of_scope", results=[])
 
     # Phase 2a: lexical retrieve (Postgres FTS on profile_text)
     fts_query = " ".join(plan.keywords).strip()
@@ -143,7 +144,7 @@ def search_contacts(
 
     # Return early if there are no candidates
     if not results:
-        return RecallSearchResponse(results=[])
+        return RecallSearchResponse(status="no_matches", results=[])
 
     # Phase 3: LLM rerank / filter against the original user query
     candidates = [
@@ -165,7 +166,7 @@ def search_contacts(
     # Fall back to merged retrieval results if LLM filter fails
     if filtered_ids is None:
         logger.warning("Recall LLM filter failed, returning merged retrieval results")
-        return RecallSearchResponse(results=results)
+        return RecallSearchResponse(status="ok", results=results)
 
     # Build filtered results in the order from LLM filter
     filtered_results: list[RecallResultItem] = []
@@ -175,4 +176,6 @@ def search_contacts(
                 filtered_results.append(result)
                 break
 
-    return RecallSearchResponse(results=filtered_results)
+    if not filtered_results:
+        return RecallSearchResponse(status="no_matches", results=[])
+    return RecallSearchResponse(status="ok", results=filtered_results)

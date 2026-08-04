@@ -1,7 +1,12 @@
 # Pydantic schemas for the API requests and responses
 
 from datetime import datetime
+from typing import Literal
+
 from pydantic import BaseModel
+
+# Status of a recall search (success, out of scope, no matches, error)
+RecallStatus = Literal["ok", "out_of_scope", "no_matches", "error"]
 
 
 class ContactCreate(BaseModel):
@@ -82,6 +87,7 @@ class RecallResultItem(BaseModel):
 
 class RecallSearchResponse(BaseModel):
     """Response schema for recall search results"""
+    status: RecallStatus
     results: list[RecallResultItem]
 
 

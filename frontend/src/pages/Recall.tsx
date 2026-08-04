@@ -3,13 +3,27 @@ import { useMutation } from '@tanstack/react-query'
 import { api } from '../libs/api'
 import ContactCard from '../components/ContactCard'
 import GradientButton from '../components/GradientButton'
-import type { RecallResult } from '../types/contact'
+import type { RecallResult, RecallSearchResponse, RecallStatus } from '../types/contact'
+
+function messageForRecallStatus(status: RecallStatus | null): string {
+  switch (status) {
+    case 'out_of_scope':
+      return 'That does not look like a contact recall question.'
+    case 'no_matches':
+      return 'No matches found.'
+    case 'error':
+      return 'Something went wrong while searching.'
+    default:
+      return ''
+  }
+}
 
 export default function RecallPage() {
   // Search query state
   const [query, setQuery] = useState('')
   const [hasSearched, setHasSearched] = useState(false)
   const [results, setResults] = useState<RecallResult[]>([])
+  const [recallStatus, setRecallStatus] = useState<RecallStatus | null>(null)
   const [error, setError] = useState('')
 
   // Search contacts from the API
@@ -17,10 +31,11 @@ export default function RecallPage() {
   const searchMutation = useMutation({
     mutationFn: async (searchQuery: string) => {
       const response = await api.post('/recall/search', { query: searchQuery })
-      return response.data as { results: RecallResult[] }
+      return response.data as RecallSearchResponse
     },
     onSuccess: data => {
       setResults(data.results)
+      setRecallStatus(data.status)
       setHasSearched(true)
     },
   })
@@ -39,11 +54,13 @@ export default function RecallPage() {
     // Reset the search state before calling the mutation
     setHasSearched(false)
     setResults([])
+    setRecallStatus(null)
 
     // Call the search mutation
     searchMutation.mutate(trimmed, {
       onError: () => {
         setError('Could not search. Please try again.')
+        setRecallStatus('error')
         setHasSearched(true)
       },
     })
@@ -55,8 +72,8 @@ export default function RecallPage() {
   // Get the status message for the results area
   const statusMessage = !hasSearched
     ? 'Ask about someone you met.'
-    : results.length === 0 && !error
-      ? 'No matches found.'
+    : !error && results.length === 0
+      ? messageForRecallStatus(recallStatus) || 'No matches found.'
       : ''
 
   return (
