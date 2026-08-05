@@ -36,8 +36,8 @@ class FasterWhisperASR:
             tmp_path = tmp.name
 
         try:
-            # Transcribe the audio file to text
-            segments, _ = self.model.transcribe(tmp_path)
+            # Transcribe the audio file to text in english
+            segments, _ = self.model.transcribe(tmp_path, language="en")
             # Join the segments into a single string
             return " ".join(segment.text.strip() for segment in segments)
         finally:
