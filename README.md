@@ -47,6 +47,12 @@ uv run uvicorn backend.main:app --reload
 - API: http://localhost:8000
 - Docs: http://localhost:8000/docs
 
+**LLM (local):**
+
+```bash
+ollama serve
+```
+
 **Full stack (Docker):**
 
 ```bash

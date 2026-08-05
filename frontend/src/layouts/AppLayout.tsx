@@ -4,8 +4,9 @@ import BottomNav from '../components/BottomNav'
 export default function AppLayout() {
   // Get the current pathname
   const { pathname } = useLocation()
-  // Hide the bottom nav on the new contact page
-  const hideBottomNav = pathname === '/contacts/new'
+  // Hide the bottom nav on create/edit contact (fullscreen forms)
+  const hideBottomNav =
+    pathname === '/contacts/new' || /^\/contacts\/[^/]+\/edit$/.test(pathname)
 
   return (
     <div className="app-layout">

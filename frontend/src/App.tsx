@@ -4,6 +4,7 @@ import LoginPage from './pages/Login.tsx'
 import ContactsPage from './pages/Contacts.tsx'
 import RecallPage from './pages/Recall.tsx'
 import NewContactPage from './pages/NewContact.tsx'
+import EditContactPage from './pages/EditContact.tsx'
 import AppLayout from './layouts/AppLayout.tsx'
 
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -32,6 +33,7 @@ function App() {
         >
           <Route path="/contacts" element={<ContactsPage />} />
           <Route path="/contacts/new" element={<NewContactPage />} />
+          <Route path="/contacts/:id/edit" element={<EditContactPage />} />
           <Route path="/recall" element={<RecallPage />} />
         </Route>
 

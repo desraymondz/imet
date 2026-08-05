@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import InitialAvatar from './InitialAvatar'
 import KeywordPill from './KeywordPill'
 import type { Contact } from '../types/contact'
@@ -16,7 +17,10 @@ export default function ContactCard({ contact, score }: ContactCardProps) {
   const keywords = (contact.keywords ?? []).filter(Boolean).slice(0, 6)
 
   return (
-    <div className="rounded-[var(--r-lg)] border border-[var(--hairline)] bg-[var(--bg-card)] px-4 py-4 shadow-[var(--shadow)]">
+    <Link
+      to={`/contacts/${contact.id}/edit`}
+      className="block rounded-[var(--r-lg)] border border-[var(--hairline)] bg-[var(--bg-card)] px-4 py-4 shadow-[var(--shadow)]"
+    >
       <div className="flex items-start gap-3">
         {/* Contact avatar */}
         <InitialAvatar name={name} />
@@ -57,6 +61,6 @@ export default function ContactCard({ contact, score }: ContactCardProps) {
           ) : null}
         </div>
       </div>
-    </div>
+    </Link>
   )
 }
