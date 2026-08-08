@@ -88,7 +88,16 @@ def run_easyocr(image_paths: list[Path]) -> list[dict]:
     """
     Load EasyOCR once, run on all image paths, then unload when the function returns.
     """
+    import warnings
+
     import easyocr
+
+    # Hide warning from EasyOCR/torch setting
+    warnings.filterwarnings(
+        "ignore",
+        message=".*pin_memory.*not supported on MPS.*",
+        category=UserWarning,
+    )
 
     print("Loading EasyOCR...")
     # Loaded once and reused for every image in this batch
