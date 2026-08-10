@@ -3,14 +3,14 @@ Augment voice-memo recordings for ASR model evaluation dataset
 
 Applied transformations:
 - babble noise at 10 dB SNR (babble_snr10)
-- babble noise at 0 dB SNR (babble_snr0)
+- babble noise at 20 dB SNR (babble_snr20)
 
 Always augment from the original clip. Never chain from an already-augmented file.
 
 Blocks IDs in asr.jsonl:
     1-20    raw
     21-40   babble_snr10
-    41-60   babble_snr0
+    41-60   babble_snr20
 
 Usage
     python eval/scripts/augment_recordings.py
@@ -33,16 +33,16 @@ GT_PATH = REPO_ROOT / "eval" / "datasets" / "ground_truths" / "asr.jsonl"
 BABBLE_PATH = OUT_DIR / "babble_sfx.mp3"
 
 # Locate each block's first ID in asr.jsonl
-BLOCKS = {"raw": 1, "babble_snr10": 21, "babble_snr0": 41}
+BLOCKS = {"raw": 1, "babble_snr10": 21, "babble_snr20": 41}
 
 # Augmentation conditions
-CONDITIONS = ("babble_snr10", "babble_snr0")
+CONDITIONS = ("babble_snr10", "babble_snr20")
 
 # Sample rate for decode / process / encode
 SAMPLE_RATE = 16000
 
 # Target SNRs (dB) for babble mixes
-SNR_DB = {"babble_snr10": 10.0, "babble_snr0": 0.0}
+SNR_DB = {"babble_snr10": 10.0, "babble_snr20": 20.0}
 
 # Define random seed for reproducibility
 RANDOM_SEED = 42
@@ -236,7 +236,7 @@ def main() -> None:
     1. Find all raw recordings in the raw directory
     2. Load raw ground truth rows
     3. Load babble noise
-    4. Create babble_snr10 and babble_snr0 clips
+    4. Create babble_snr10 and babble_snr20 clips
     5. Rebuild asr.jsonl from raw rows and generated rows
     """
     # Ensure ffmpeg is available
