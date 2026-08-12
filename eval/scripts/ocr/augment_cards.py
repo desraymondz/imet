@@ -10,7 +10,7 @@ Blocks IDs in ocr.jsonl:
     91-120  warp_lowres
 
 Usage
-    python eval/scripts/augment_cards.py
+    python eval/scripts/ocr/augment_cards.py
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ import cv2
 import numpy as np
 
 # Define paths
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 RAW_DIR = REPO_ROOT / "eval" / "datasets" / "images" / "raw"
 OUT_DIR = REPO_ROOT / "eval" / "datasets" / "images" / "augmented"
 GT_PATH = REPO_ROOT / "eval" / "datasets" / "ground_truths" / "ocr.jsonl"

@@ -10,7 +10,7 @@ Result row shape (per image):
     {"raw_text": str, "latency_ms": float | None, "error": str | None}
 
 Used by
-    eval/scripts/run_ocr_eval.py
+    eval/scripts/ocr/run_ocr_eval.py
 """
 
 from __future__ import annotations

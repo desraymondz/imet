@@ -10,7 +10,7 @@ Result row shape (per clip):
     {"transcript": str, "latency_ms": float | None, "error": str | None}
 
 Used by
-    eval/scripts/run_asr_eval.py
+    eval/scripts/asr/run_asr_eval.py
 """
 
 from __future__ import annotations

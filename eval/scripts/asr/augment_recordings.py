@@ -13,7 +13,7 @@ Blocks IDs in asr.jsonl:
     41-60   babble_snr20
 
 Usage
-    python eval/scripts/augment_recordings.py
+    python eval/scripts/asr/augment_recordings.py
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ from pathlib import Path
 import numpy as np
 
 # Define paths
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 RAW_DIR = REPO_ROOT / "eval" / "datasets" / "audio" / "raw"
 OUT_DIR = REPO_ROOT / "eval" / "datasets" / "audio" / "augmented"
 GT_PATH = REPO_ROOT / "eval" / "datasets" / "ground_truths" / "asr.jsonl"
