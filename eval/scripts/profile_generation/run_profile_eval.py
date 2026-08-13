@@ -7,7 +7,7 @@ Pipeline (one model at a time):
     3. Write eval/predictions/profile_generation/{model}.jsonl (overwrites if present)
 
 Prediction row fields:
-    id, model, prediction, latency_ms, error
+    id, model, prediction, raw_response, latency_ms, error
 
 Models:
     qwen3.5_4b
@@ -90,6 +90,7 @@ def run_model(model: str, rows: list[dict]) -> None:
                 "id": row["id"],
                 "model": model,
                 "prediction": result["prediction"],
+                "raw_response": result["raw_response"],
                 "latency_ms": result["latency_ms"],
                 "error": result["error"],
             }
