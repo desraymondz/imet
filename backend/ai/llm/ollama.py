@@ -180,7 +180,7 @@ class OllamaLLM:
         if transcript.strip():
             inputs.append(f"Voice note transcript:\n{transcript.strip()}")
         if ocr_text.strip():
-            inputs.append(f"Image text (business card, LinkedIn, Instagram, etc.):\n{ocr_text.strip()}")
+            inputs.append(f"Image text (business card):\n{ocr_text.strip()}")
         if free_form_text.strip():
             inputs.append(f"Free-form notes:\n{free_form_text.strip()}")
 
@@ -194,28 +194,47 @@ class OllamaLLM:
         # Build the prompt
         prompt = f"""You are helping someone remember a person they just met.
 
-Here is the raw information captured about this person:
-
-{inputs_block}
-
 Extract a contact profile with these fields:
-- display_name: full name, or null if unknown
-- email: email address, or null if unknown
-- phone: phone number, or null if unknown
-- company: company or organisation, or null if unknown
-- role: job title or role, or null if unknown
-- location: city, country, or address, or null if unknown
+- display_name: full name, or empty string if unknown
+- email: email address, or empty string if unknown
+- phone: phone number, or empty string if unknown
+- company: company or organisation, or empty string if unknown
+- role: job title or role, or empty string if unknown
+- location: city, country, or address, or empty string if unknown
 - profile_text: a warm, natural 2-3 sentence summary of who this person is.
-  Write it like a memory aide — include their role, company, and any interesting
+  Write it like a memory aid, include their role, company, and any interesting
   personal details mentioned in the inputs.
 - keywords: short lowercase tags (industry, role, interests, traits)
 
 Use image text mainly for structured fields (name, email, phone, company, role, location).
 Use the voice note mainly for personal context, interests, and profile_text.
 Use free-form notes mainly to fill gaps or add context when the other sources are sparse.
-If multiple sources mention the same field, prefer image text for structured fields.
-Do not invent facts not present in the input. Use null for unknown fields.
+If multiple sources mention the same field, prefer image text for structured fields,
+unless the voice note or free-form notes clearly say the card is out of date.
+Do not invent facts not present in the input.
 Respond with valid JSON only. Use empty strings for unknown fields.
+
+Example:
+Voice note transcript:
+Met Jane Doe at the design meetup. She leads product design at Acme Labs. Really into trail running, did the Three Peaks last year.
+
+Image text (business card, LinkedIn, Instagram, etc.):
+JANE DOE
+Product Designer
+Acme Labs
+jane@acme.example
++44 7700 900123
+Manchester
+
+Free-form notes:
+intro via Sam. Follow up about the portfolio review
+
+Output:
+{{"display_name": "Jane Doe", "email": "jane@acme.example", "phone": "+44 7700 900123", "company": "Acme Labs", "role": "Product Designer", "location": "Manchester", "profile_text": "Product designer at Acme Labs in Manchester. Keen trail runner who completed the Three Peaks last year. Met at the design meetup; introduced by Sam and worth following up about a portfolio review.", "keywords": ["product design", "trail running", "acme labs"]}}
+
+Now extract a contact profile from this information:
+
+{inputs_block}
 """
 
         # Build the messages for the LLM
