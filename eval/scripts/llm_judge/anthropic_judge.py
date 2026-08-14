@@ -63,8 +63,12 @@ def _parse_json_object(response: str) -> dict[str, Any]:
     if cleaned.strip() in ("", "{}", "{ }"):
         raise ValueError("Judge returned empty JSON object")
 
-    # Step 3: Parse JSON
-    data = json.loads(cleaned)
+    # Step 3: Parse the first JSON object (Haiku often adds extra text after it)
+    start = cleaned.find("{")
+    if start < 0:
+        raise ValueError("Judge response has no JSON object")
+    decoder = json.JSONDecoder()
+    data, _end = decoder.raw_decode(cleaned[start:])
     if not isinstance(data, dict):
         raise ValueError("Judge response is not a JSON object")
 
