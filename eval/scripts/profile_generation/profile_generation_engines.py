@@ -17,7 +17,6 @@ Result row shape (per capture input):
             "display_name", "email", "phone", "company", "role",
             "location", "profile_text", "keywords"
         },
-        "raw_response": str | None,
         "latency_ms": float | None,
         "error": str | None,
     }
@@ -247,7 +246,7 @@ Now extract a contact profile from this information:
 def run_profile_one(generate, capture_input: dict) -> dict:
     """
     Run profile generation on a single capture input dict.
-    Returns a dict with prediction, raw_response, latency_ms, and optional error.
+    Returns a dict with prediction, latency_ms, and optional error.
     """
     # Build the prompt from the three optional input sources
     prompt = build_prompt(
@@ -261,32 +260,23 @@ def run_profile_one(generate, capture_input: dict) -> dict:
         # Return empty prediction
         return {
             "prediction": dict(_EMPTY_PREDICTION),
-            "raw_response": None,
             "latency_ms": None,
             "error": None,
         }
 
     # Start timer for single-call LLM latency
     t0 = time.perf_counter()
-    raw_response = None
     try:
         # Call the model-specific generate function
-        raw_response = generate(prompt)
-        prediction = _parse_contact_response(raw_response)
+        prediction = generate(prompt)
         latency_ms = round((time.perf_counter() - t0) * 1000, 2)
-        return {
-            "prediction": prediction,
-            "raw_response": raw_response,
-            "latency_ms": latency_ms,
-            "error": None,
-        }
+        return {"prediction": prediction, "latency_ms": latency_ms, "error": None}
 
     except Exception as exc:
         # Generation / parse failed will store empty prediction and error
         latency_ms = round((time.perf_counter() - t0) * 1000, 2)
         return {
             "prediction": dict(_EMPTY_PREDICTION),
-            "raw_response": raw_response,
             "latency_ms": latency_ms,
             "error": f"{type(exc).__name__}: {exc}",
         }
@@ -313,10 +303,11 @@ def run_profile_all(name: str, generate, capture_inputs: list[dict]) -> list[dic
 
 def _make_ollama_generate(ollama_tag: str):
     """
-    Builds a reusable Ollama prompt-caller.
+    Return a generate(prompt) -> prediction dict using a fixed Ollama model tag.
 
-    Connects to Ollama once and reuses that client for every capture input.
-    Returns the model's raw response string.
+    Eval uses a single structured-schema call (no JSON-format fallback) so
+    latency and success rate reflect one-shot model quality.
+    The main app still retries with format="json" in build_contact.
     """
     from ollama import Client
 
@@ -324,7 +315,7 @@ def _make_ollama_generate(ollama_tag: str):
     # Client is reused for every capture input
     client = Client(host=host)
 
-    def generate(prompt: str) -> str:
+    def generate(prompt: str) -> dict[str, Any]:
         # Build chat messages (same as main app)
         messages = [{"role": "user", "content": prompt}]
 
@@ -338,7 +329,10 @@ def _make_ollama_generate(ollama_tag: str):
             think=False,
             options={"temperature": 0.1},
         )
-        return response.message.content or ""
+        content = response.message.content or ""
+
+        # Parse and normalise into prediction dict
+        return _parse_contact_response(content)
 
     return generate
 
