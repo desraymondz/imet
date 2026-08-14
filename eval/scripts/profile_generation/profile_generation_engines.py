@@ -303,11 +303,8 @@ def run_profile_all(name: str, generate, capture_inputs: list[dict]) -> list[dic
 
 def _make_ollama_generate(ollama_tag: str):
     """
-    Return a generate(prompt) -> prediction dict using a fixed Ollama model tag.
-
-    Eval uses a single structured-schema call (no JSON-format fallback) so
-    latency and success rate reflect one-shot model quality.
-    The main app still retries with format="json" in build_contact.
+    Build a generate(prompt) function for one Ollama model.
+    Eval calls the model once with a structured schema (no JSON retry).
     """
     from ollama import Client
 
