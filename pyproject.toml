@@ -22,6 +22,7 @@ dependencies = [
     "python-dotenv>=1.2.2",
     "python-jose[cryptography]>=3.5.0",
     "python-multipart>=0.0.32",
+    "rapidfuzz>=3.14.5",
     "rapidocr-onnxruntime>=1.4.4",
     "sentence-transformers>=4.1.0",
     "sqlalchemy>=2.0.50",
