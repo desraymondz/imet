@@ -14,6 +14,7 @@ uv sync
 ```
 
 For local API dev, set `DATABASE_URL` host to `localhost` in `.env.local`.
+For recall eval seed scripts, set `EVAL_DATABASE_URL` host to `localhost` (database `imet_eval` on the same Postgres).
 
 **Ollama (local LLM):**
 
@@ -36,6 +37,14 @@ The API loads `BAAI/bge-base-en-v1.5` via sentence-transformers at startup. On f
 
 ```bash
 docker compose -f compose.dev.yml --env-file .env.local up postgres -d
+```
+
+**Eval database (recall seed):**
+
+Same Postgres instance, separate database `imet_eval`. The script creates it if missing, loads `eval/datasets/recall/contacts.jsonl`, and embeds `profile_text` with the same BGE model as the API. Re-running replaces the seeded contacts.
+
+```bash
+uv run python eval/scripts/recall/seed_eval_db.py
 ```
 
 **API (local):**
