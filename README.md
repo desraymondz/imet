@@ -41,7 +41,7 @@ docker compose -f compose.dev.yml --env-file .env.local up postgres -d
 
 **Eval database (recall seed):**
 
-Same Postgres instance, separate database `imet_eval`. The script creates it if missing, loads `eval/datasets/recall/contacts.jsonl`, and embeds `profile_text` with the same BGE model as the API. Re-running replaces the seeded contacts.
+Same Postgres instance, separate database `imet_eval`. The script creates it if missing, loads `eval/datasets/ground_truths/contacts.jsonl`, and embeds `profile_text` with the same BGE model as the API. Re-running replaces the seeded contacts.
 
 ```bash
 uv run python eval/scripts/recall/seed_eval_db.py

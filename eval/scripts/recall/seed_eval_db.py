@@ -1,6 +1,6 @@
 """
 Create imet_eval (if not exists), apply the app contact schema, then load
-eval/datasets/recall/contacts.jsonl with stable ids and BGE embeddings.
+eval/datasets/ground_truths/contacts.jsonl with stable ids and BGE embeddings.
 
 Pipeline:
     1. CREATE DATABASE imet_eval if it does not exist
@@ -31,7 +31,7 @@ from sqlalchemy.orm import sessionmaker
 
 # Define paths
 REPO_ROOT = Path(__file__).resolve().parents[3]
-CONTACTS_PATH = REPO_ROOT / "eval" / "datasets" / "recall" / "contacts.jsonl"
+CONTACTS_PATH = REPO_ROOT / "eval" / "datasets" / "ground_truths" / "contacts.jsonl"
 
 # Dummy owner required by contacts.owner_id (not used in eval scoring)
 EVAL_USER_EMAIL = "eval@imet.local"
