@@ -155,24 +155,30 @@ def build_prompt(query: str) -> str:
     Same prompt as the main app (backend/ai/llm/ollama.py understand_recall_query)
     """
     cleaned_query = query.strip()
-    return f"""
-You are helping someone search their personal contact network.
+    return f"""You are a query planner for a personal contact network. The user is searching people they already know.
 
 The user asked:
 {cleaned_query}
 
 Produce a query plan with:
-- in_scope: true if they are trying to recall or find a person they met / know;
-  false for unrelated questions (weather, math, coding help, general trivia, etc.).
+- in_scope: true for any request to find a person in their network
+  (who likes X, who works at Y, classmates, names). "who likes hiking" is in scope.
+  false only for questions that are not about people they know
+  (weather, math, coding help, news, general trivia).
 - keywords: short lexical search terms as a JSON string array for full-text search
   (names, companies, roles, places, hobbies). Empty array if out of scope.
 - hyde_rewrite: 1-2 sentences written like a contact profile_text that would match
   what they are looking for (Hypothetical Document Embedding). Empty string if out of scope.
 
-Example:
-User asked: Who did I meet that likes hiking?
+Example in scope:
+User asked: who likes hiking
 Output:
 {{"in_scope": true, "keywords": ["hiking", "outdoors"], "hyde_rewrite": "Enjoys hiking and outdoor activities. Often talks about trails and weekend mountain trips."}}
+
+Example out of scope:
+User asked: what's the weather in London tomorrow
+Output:
+{{"in_scope": false, "keywords": [], "hyde_rewrite": ""}}
 
 Respond with valid JSON only.
 """
