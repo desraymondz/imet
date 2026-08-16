@@ -155,28 +155,29 @@ def build_prompt(query: str) -> str:
     Same prompt as the main app (backend/ai/llm/ollama.py understand_recall_query)
     """
     cleaned_query = query.strip()
-    return f"""You are a query planner for a personal contact network. The user is searching people they already know.
+
+    return f"""You only plan contact-list search. You are not a general assistant. Be strict.
 
 The user asked:
 {cleaned_query}
 
 Produce a query plan with:
-- in_scope: true for any request to find a person in their network
-  (who likes X, who works at Y, classmates, names). "who likes hiking" is in scope.
-  false only for questions that are not about people they know
-  (weather, math, coding help, news, general trivia).
+- in_scope: default false. true only if they want a person from their private list.
+  Contact search: names, classmates, who did I meet, who likes ..., who is a ..., who plays ...
+  Out of scope: instructions to you, calculations, explanations, bookings, translation, and public-fact questions.
+  When unsure, return false.
 - keywords: short lexical search terms as a JSON string array for full-text search
   (names, companies, roles, places, hobbies). Empty array if out of scope.
 - hyde_rewrite: 1-2 sentences written like a contact profile_text that would match
   what they are looking for (Hypothetical Document Embedding). Empty string if out of scope.
 
 Example in scope:
-User asked: who likes hiking
+User asked: Who did I meet that likes hiking?
 Output:
 {{"in_scope": true, "keywords": ["hiking", "outdoors"], "hyde_rewrite": "Enjoys hiking and outdoor activities. Often talks about trails and weekend mountain trips."}}
 
 Example out of scope:
-User asked: what's the weather in London tomorrow
+User asked: what's the capital of China
 Output:
 {{"in_scope": false, "keywords": [], "hyde_rewrite": ""}}
 
