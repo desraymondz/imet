@@ -1,0 +1,60 @@
+{"id": 1, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 3556.21, "error": null}
+{"id": 2, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1208.39, "error": null}
+{"id": 3, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1185.43, "error": null}
+{"id": 4, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1725.4, "error": null}
+{"id": 5, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1249.85, "error": null}
+{"id": 6, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1845.13, "error": "JSONDecodeError: Expecting property name enclosed in double quotes: line 4 column 31 (char 87)"}
+{"id": 7, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1504.63, "error": null}
+{"id": 8, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 969.78, "error": null}
+{"id": 9, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 962.14, "error": null}
+{"id": 10, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1309.21, "error": null}
+{"id": 11, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1038.25, "error": null}
+{"id": 12, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1226.55, "error": null}
+{"id": 13, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1261.25, "error": null}
+{"id": 14, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 935.79, "error": null}
+{"id": 15, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1260.19, "error": null}
+{"id": 16, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 930.85, "error": null}
+{"id": 17, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1248.43, "error": null}
+{"id": 18, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 956.05, "error": null}
+{"id": 19, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1364.52, "error": null}
+{"id": 20, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1273.61, "error": null}
+{"id": 21, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1319.49, "error": null}
+{"id": 22, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1410.0, "error": null}
+{"id": 23, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1403.15, "error": null}
+{"id": 24, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1811.31, "error": "JSONDecodeError: Expecting property name enclosed in double quotes: line 4 column 26 (char 87)"}
+{"id": 25, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1046.79, "error": null}
+{"id": 26, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1619.06, "error": null}
+{"id": 27, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1411.16, "error": null}
+{"id": 28, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1315.19, "error": null}
+{"id": 29, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1761.57, "error": null}
+{"id": 30, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1123.78, "error": null}
+{"id": 31, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1867.08, "error": null}
+{"id": 32, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1363.34, "error": null}
+{"id": 33, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1307.46, "error": null}
+{"id": 34, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1391.74, "error": null}
+{"id": 35, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1374.52, "error": null}
+{"id": 36, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1582.14, "error": "JSONDecodeError: Expecting ',' delimiter: line 4 column 22 (char 71)"}
+{"id": 37, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1518.78, "error": null}
+{"id": 38, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1494.11, "error": null}
+{"id": 39, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1253.36, "error": null}
+{"id": 40, "model": "qwen3.5_0.8b", "prediction": {"in_scope": true, "keywords": ["skydiving", "adventure"], "hyde_rewrite": "Enjoys skydiving and adventure sports; often mentions the thrill of freefall or specific locations where they practiced."}, "latency_ms": 1358.38, "error": null}
+{"id": 41, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1355.41, "error": null}
+{"id": 42, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1268.46, "error": null}
+{"id": 43, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1288.66, "error": null}
+{"id": 44, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1592.82, "error": null}
+{"id": 45, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1332.44, "error": null}
+{"id": 46, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1258.98, "error": null}
+{"id": 47, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1320.92, "error": null}
+{"id": 48, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1557.16, "error": null}
+{"id": 49, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1029.37, "error": null}
+{"id": 50, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1416.16, "error": null}
+{"id": 51, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1302.74, "error": null}
+{"id": 52, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1309.4, "error": null}
+{"id": 53, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1329.61, "error": "JSONDecodeError: Expecting property name enclosed in double quotes: line 4 column 34 (char 83)"}
+{"id": 54, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1259.96, "error": null}
+{"id": 55, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1635.78, "error": null}
+{"id": 56, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1754.08, "error": "JSONDecodeError: Expecting property name enclosed in double quotes: line 4 column 34 (char 88)"}
+{"id": 57, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1453.79, "error": null}
+{"id": 58, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 965.33, "error": null}
+{"id": 59, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 1913.18, "error": "JSONDecodeError: Extra data: line 9 column 1 (char 365)"}
+{"id": 60, "model": "qwen3.5_0.8b", "prediction": {"in_scope": false, "keywords": [], "hyde_rewrite": ""}, "latency_ms": 988.99, "error": null}
