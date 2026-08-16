@@ -3,7 +3,7 @@ Semantic retrieval runner for evaluation.
 
 Each run:
     1. Connect to imet_eval
-    2. Embed gold hyde_rewrite with BGE
+    2. Embed query text with BGE (HyDE rewrite or raw user query)
     3. Rank contacts by cosine similarity
     4. Return when the batch finishes
 
@@ -24,29 +24,29 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "recall"))
 from seed_eval_db import EVAL_OWNER_ID, eval_database_url, load_env
 
 
-def search_one(db: Session, hyde_rewrite: str, limit: int) -> dict:
+def search_one(db: Session, query_text: str, limit: int) -> dict:
     """
-    Embed one HyDE string then rank eval contacts by cosine similarity.
+    Embed one query string then rank eval contacts by cosine similarity.
 
     Returns a dict with ranked contact ids, latency_ms, and optional error.
     """
     from backend.ai.embeddings.bge import get_embedder
     from backend.models import Contact
 
-    # Strip whitespace from the HyDE rewrite
-    cleaned = hyde_rewrite.strip()
-    # If no hyde_rewrite, return empty list with error message
+    # Strip whitespace from the query text
+    cleaned = query_text.strip()
+    # If no query text, skip embed and SQL
     if not cleaned:
         return {
             "ranked": [],
             "latency_ms": None,
-            "error": "empty hyde_rewrite",
+            "error": "empty query text",
         }
 
     # Start timer
     t0 = time.perf_counter()
     try:
-        # Embed the HyDE rewrite
+        # Embed the query text
         query_vector = get_embedder().embed_text(cleaned)
         # Rank contacts by cosine distance (lower = more similar)
         distance = Contact.profile_embedding.cosine_distance(query_vector).label("distance")
@@ -83,9 +83,9 @@ def search_one(db: Session, hyde_rewrite: str, limit: int) -> dict:
         }
 
 
-def run_bge_engine(hyde_rewrites: list[str]) -> list[dict]:
+def run_bge_engine(query_texts: list[str]) -> list[dict]:
     """
-    Embed every HyDE rewrite against imet_eval
+    Embed every query string against imet_eval.
     """
     from sqlalchemy import create_engine
 
@@ -105,7 +105,7 @@ def run_bge_engine(hyde_rewrites: list[str]) -> list[dict]:
     db = SessionLocal()
 
     results: list[dict] = []
-    total = len(hyde_rewrites)
+    total = len(query_texts)
 
     try:
         # Load the embedding model once and reuse it
@@ -113,9 +113,9 @@ def run_bge_engine(hyde_rewrites: list[str]) -> list[dict]:
         get_embedder()
         print("BGE embedder ready.")
 
-        # Rank contacts for each HyDE rewrite against imet_eval
-        for i, hyde_rewrite in enumerate(hyde_rewrites, start=1):
-            results.append(search_one(db, hyde_rewrite, max_candidates))
+        # Rank contacts for each query string against imet_eval
+        for i, query_text in enumerate(query_texts, start=1):
+            results.append(search_one(db, query_text, max_candidates))
 
             # Log progress every 10 queries
             if i % 10 == 0 or i == total:

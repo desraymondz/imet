@@ -4,11 +4,15 @@ Run semantic retrieval over in-scope recall queries and store ranked predictions
 Pipeline:
     1. Load ground-truth rows from recall_queries.jsonl
     2. Keep in_scope rows only (skip out-of-scope with no embed or SQL)
-    3. Embed gold hyde_rewrite with BGE then rank eval contacts
+    3. Embed expected hyde_rewrite and the raw user query with BGE then rank eval contacts
     4. Write eval/predictions/semantic_retrieval/bge_base_en_v1.5.jsonl
 
 Prediction row fields:
-    id, ranked, latency_ms, error
+    id, query_source, ranked, latency_ms, error
+
+query_source:
+    hyde_rewrite  expected HyDE text (main path)
+    raw_query     original user query (app fallback when HyDE is blank)
 
 Usage
     python eval/scripts/semantic_retrieval/run_semantic_retrieval_eval.py
@@ -62,22 +66,16 @@ def in_scope_rows(gt_rows: list[dict]) -> list[dict]:
     return kept
 
 
-def write_predictions(gt_rows: list[dict], results: list[dict]) -> Path:
+def write_predictions(records: list[dict]) -> Path:
     """
     Write eval/predictions/semantic_retrieval/bge_base_en_v1.5.jsonl
     """
     # Ensure output directory exists
     PRED_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Write one JSON object per in-scope query
+    # Write one JSON object per query and query_source
     with PRED_PATH.open("w", encoding="utf-8") as pred_file:
-        for row, result in zip(gt_rows, results):
-            record = {
-                "id": row["id"],
-                "ranked": result["ranked"],
-                "latency_ms": result["latency_ms"],
-                "error": result["error"],
-            }
+        for record in records:
             pred_file.write(json.dumps(record, ensure_ascii=False) + "\n")
     return PRED_PATH
 
@@ -103,13 +101,40 @@ def main() -> None:
 
     print(f"Keeping {len(kept)} in-scope queries")
 
-    # Collect expected HyDE rewrites
-    texts = [(row.get("expected") or {}).get("hyde_rewrite") or "" for row in kept]
+    # Collect expected HyDE rewrites and raw user queries (app fallback)
+    hyde_texts = [(row.get("expected") or {}).get("hyde_rewrite") or "" for row in kept]
+    raw_texts = [(row.get("query") or "") for row in kept]
 
-    # Step 3: Run BGE ranking then write predictions
-    results = run_bge_engine(texts)
-    out_path = write_predictions(kept, results)
-    print(f"Wrote {len(kept)} rows to: {out_path.relative_to(REPO_ROOT)}")
+    # Step 3: Rank both query sources in one BGE pass then write predictions
+    n = len(kept)
+    all_results = run_bge_engine(hyde_texts + raw_texts)
+    hyde_results = all_results[:n]
+    raw_results = all_results[n:]
+
+    records: list[dict] = []
+    for row, result in zip(kept, hyde_results):
+        records.append(
+            {
+                "id": row["id"],
+                "query_source": "hyde_rewrite",
+                "ranked": result["ranked"],
+                "latency_ms": result["latency_ms"],
+                "error": result["error"],
+            }
+        )
+    for row, result in zip(kept, raw_results):
+        records.append(
+            {
+                "id": row["id"],
+                "query_source": "raw_query",
+                "ranked": result["ranked"],
+                "latency_ms": result["latency_ms"],
+                "error": result["error"],
+            }
+        )
+
+    out_path = write_predictions(records)
+    print(f"Wrote {len(records)} rows to: {out_path.relative_to(REPO_ROOT)}")
 
 
 if __name__ == "__main__":
