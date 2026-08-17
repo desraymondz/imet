@@ -440,6 +440,13 @@ Return contact_ids for the candidates that genuinely match the user's question.
 - Return an empty list if none of the candidates truly match.
 - Only use IDs from the candidate list above.
 - Do not invent contacts or facts not supported by the candidate summaries.
+
+Example:
+{{"contact_ids": [12, 45]}}
+
+If none match:
+{{"contact_ids": []}}
+
 Respond with valid JSON only.
 """
 
