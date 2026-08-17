@@ -12,6 +12,18 @@ from backend.db import Base
 # Embedding dimensions (assuming BGE-base-en-v1.5 embedding model is used)
 EMBEDDING_DIM = 768
 
+# FTS document over lexical profile fields (except email/phone)
+SEARCH_TSV_SQL = """
+to_tsvector(
+  'english'::regconfig,
+  coalesce(display_name, '') || ' ' ||
+  coalesce(company, '') || ' ' ||
+  coalesce(role, '') || ' ' ||
+  coalesce(location, '') || ' ' ||
+  coalesce(profile_text, '')
+)
+""".strip()
+
 
 class User(Base):
     """User account"""
@@ -55,10 +67,10 @@ class Contact(Base):
     # LLM-generated natural language summary (to be embedded and retrieved by semantic search)
     profile_text: Mapped[str | None] = mapped_column(Text)
 
-    # Full-text search document derived from profile_text
+    # Full-text search document
     search_tsv: Mapped[str | None] = mapped_column(
         TSVECTOR,
-        Computed("to_tsvector('english', coalesce(profile_text, ''))", persisted=True),
+        Computed(SEARCH_TSV_SQL, persisted=True),
     )
 
     # Embedding of the profile text (to be used for semantic search)
