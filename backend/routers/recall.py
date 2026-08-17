@@ -31,7 +31,7 @@ def search_contacts_lexical(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Search contacts by Postgres full-text search on profile_text (via search_tsv)"""
+    """Search contacts by Postgres full-text search on search_tsv"""
     # Strip whitespace from the query
     query = payload.query.strip()
 
@@ -42,11 +42,11 @@ def search_contacts_lexical(
             detail="Query must not be empty",
         )
 
-    # Search the contacts by the query
+    # Search the contacts by adding OR between the query tokens
     rows = search_contacts_fts(
         db=db,
         owner_id=current_user.id,
-        keywords=query,
+        keywords=query.split(),
         limit=settings.recall_max_candidates,
     )
 
@@ -103,12 +103,11 @@ def search_contacts(
     if not plan.in_scope:
         return RecallSearchResponse(status="out_of_scope", results=[])
 
-    # Phase 2a: lexical retrieve (Postgres FTS on profile_text)
-    fts_query = " ".join(plan.keywords).strip()
+    # Phase 2a: lexical retrieve (FTS on search_tsv, with OR keywords)
     fts_results = search_contacts_fts(
         db=db,
         owner_id=current_user.id,
-        keywords=fts_query,
+        keywords=plan.keywords,
         limit=settings.recall_max_candidates,
     )
 
