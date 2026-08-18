@@ -13,7 +13,7 @@ Each run:
     4. Return when the batch finishes
 
 Prompt and schema match backend/ai/llm/ollama.py filter_recall_matches.
-Retrieve matches backend/routers/recall.py Phase 2 (FTS + vector + merge).
+Retrieve matches backend/routers/recall.py Phase 2 (FTS and vector then merge).
 
 Used by
     eval/scripts/recall_filter/run_recall_filter_eval.py

@@ -272,6 +272,7 @@ Now extract a contact profile from this information:
         # Clean the query
         cleaned_query = query.strip()
         # Extract keywords from the query as a fallback when the keywords are empty
+        # TODO: improve keyword extraction (remove stopwords, lemmatise, etc.). Update the eval code as well.
         fallback_keywords = [token for token in cleaned_query.split() if token]
 
         # If the query is empty, return an empty recall query plan
