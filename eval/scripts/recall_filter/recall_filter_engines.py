@@ -208,13 +208,19 @@ def retrieve_one(
     FTS and vector retrieve then merge
     Same as backend/routers/recall.py
 
-    Returns a dict with candidates, candidate_ids, and optional error.
+    Returns a dict with candidates, candidate_ids, fts_ids, vector_ids, latency_ms, and optional error.
     """
     from backend.ai.embeddings.bge import get_embedder
     from backend.ai.retrieval.fts import search_contacts_fts
     from backend.ai.retrieval.hybrid import merge_recall_candidates
     from backend.models import Contact
 
+    # Track the contact ids for each retriever found
+    fts_ids: list[int] = []
+    vector_ids: list[int] = []
+
+    # Start timer for retrieve latency (embed and query)
+    t0 = time.perf_counter()
     try:
         # Lexical retrieve (FTS on search_tsv, keywords OR)
         fts_results = search_contacts_fts(
@@ -223,6 +229,7 @@ def retrieve_one(
             keywords=keywords,
             limit=max_candidates,
         )
+        fts_ids = [int(contact.id) for contact, _rank in fts_results]
 
         # Semantic retrieve (embed HyDE rewrite, rank by cosine similarity)
         vector_results: list[tuple] = []
@@ -250,6 +257,7 @@ def retrieve_one(
                 if score < min_score:
                     continue
                 vector_results.append((contact, score))
+        vector_ids = [int(contact.id) for contact, _score in vector_results]
 
         # Merge vector and FTS results by contact id
         results = merge_recall_candidates(
@@ -257,17 +265,25 @@ def retrieve_one(
             fts_results=fts_results,
         )
         candidates = [candidate_from_contact(result.contact) for result in results]
+        latency_ms = round((time.perf_counter() - t0) * 1000, 2)
         return {
             "candidates": candidates,
             "candidate_ids": [candidate["id"] for candidate in candidates],
+            "fts_ids": fts_ids,
+            "vector_ids": vector_ids,
+            "latency_ms": latency_ms,
             "error": None,
         }
 
     except Exception as exc:
         # Retrieval failed, store error
+        latency_ms = round((time.perf_counter() - t0) * 1000, 2)
         return {
             "candidates": [],
             "candidate_ids": [],
+            "fts_ids": fts_ids,
+            "vector_ids": vector_ids,
+            "latency_ms": latency_ms,
             "error": f"{type(exc).__name__}: {exc}",
         }
 
