@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.ai.asr.faster_whisper import get_asr
+from backend.ai.ocr.paddleocr import get_ocr
 from backend.ai.embeddings.bge import get_embedder
 from backend.config import settings
 from backend.db import check_db_connection, init_db
@@ -36,6 +37,10 @@ async def lifespan(app: FastAPI):
     # Load the ASR model
     get_asr()
     print("iMet: ASR model loaded successfully")
+
+    # Load the OCR model
+    get_ocr()
+    print("iMet: OCR model loaded successfully")
 
     # Load the embedding model
     get_embedder()
