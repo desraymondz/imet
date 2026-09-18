@@ -4,7 +4,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.ai.asr.faster_whisper import get_asr
+from backend.ai.asr.parakeet import get_asr
 from backend.ai.ocr.paddleocr import get_ocr
 from backend.ai.embeddings.bge import get_embedder
 from backend.config import settings

@@ -4,7 +4,7 @@ import logging
 from backend.dependencies import get_current_user
 from backend.models import User
 from backend.schemas import BuildContactRequest, ContactExtract
-from backend.ai.asr.faster_whisper import get_asr
+from backend.ai.asr.parakeet import get_asr
 from backend.ai.ocr.paddleocr import get_ocr
 from backend.ai.llm.ollama import get_llm
 
