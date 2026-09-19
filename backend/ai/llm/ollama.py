@@ -394,7 +394,7 @@ Respond with valid JSON only.
     ) -> list[int] | None:
         """
         Filter recall candidates with the LLM.
-        Returns a list of contact IDs in the order of LLM filter
+        Returns a list of contact IDs in LLM best-match order, or None on LLM/parse failure.
         """
         # Return early if there are no candidates
         if not candidates:
@@ -456,43 +456,38 @@ Respond with valid JSON only.
 
         # Try to parse the recall filter response from the LLM
         for attempt, response_format in enumerate([RECALL_FILTER_OLLAMA_SCHEMA, "json"], start=1):
-            # Call the LLM
-            response = self.chat(
-                LLMType.FAST,
-                messages=messages,
-                response_format=response_format,
-            )
             try:
-                # Strip JSON fences (```json) from the response
+                # Call the LLM
+                response = self.chat(
+                    LLMType.FAST,
+                    messages=messages,
+                    response_format=response_format,
+                )
+                # Strip JSON fences from the response
                 cleaned = _strip_json_fences(response)
                 # Parse the recall filter response from the LLM
                 parsed = RecallFilterOutput.model_validate_json(cleaned)
-                break
-            except ValidationError as e:
-                # Log the error
+
+                # Keep only IDs that were in the candidate list, skip any hallucinated IDs
+                matched_ids: list[int] = []
+                for contact_id in parsed.contact_ids:
+                    for candidate in candidates:
+                        if candidate.id == contact_id:
+                            matched_ids.append(contact_id)
+                            break
+
+                return matched_ids
+            except (ValidationError, ValueError, json.JSONDecodeError, TypeError, Exception) as e:
+                # Log the error (parse or LLM failure)
                 logger.warning(
-                    "LLM recall parse failed",
+                    "LLM recall filter failed (attempt=%s, format=%s): %s",
                     attempt,
                     response_format if isinstance(response_format, str) else "schema",
                     e,
                 )
-                parsed = None
-        else:
-            return None
 
-        
-        if parsed is None:
-            return None
-
-        # Keep only IDs that were in the candidate list, skip any hallucinated IDs
-        matched_ids: list[int] = []
-        for contact_id in parsed.contact_ids:
-            for candidate in candidates:
-                if candidate.id == contact_id:
-                    matched_ids.append(contact_id)
-                    break
-
-        return matched_ids
+        logger.warning("Recall LLM filter failed, returning None on failure")
+        return None
 
 
 # Shared LLM instance
