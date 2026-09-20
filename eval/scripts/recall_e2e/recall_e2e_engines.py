@@ -3,8 +3,8 @@ Recall end-to-end model runners for evaluation.
 
 Each run:
     1. Load cached query-understanding predictions (not re-run)
-    2. Apply production empty-field fallback on in-scope plans
-    3. FTS (predicted keywords) merge with vector (predicted HyDE) candidates
+    2. Apply production empty-keyword fallback on in-scope plans
+    3. FTS (predicted keywords) merge with vector (raw user query) candidates
     4. Filter merged candidates with LLM against the original user query
     5. Apply production filter LLM failure fallback
 
@@ -40,7 +40,6 @@ QU_PRED_DIR = REPO_ROOT / "eval" / "predictions" / "query_understanding"
 EMPTY_PLAN: dict[str, Any] = {
     "in_scope": False,
     "keywords": [],
-    "hyde_rewrite": "",
 }
 
 
@@ -87,7 +86,7 @@ def load_query_understanding_pred(model: str) -> dict[int, dict]:
 
 def apply_plan_fallback(plan: dict, raw_query: str) -> dict:
     """
-    If in_scope but keywords or HyDE are blank, fill them from the raw query
+    If in_scope but keywords are blank, fill them from the raw query
     """
     # Strip whitespace from the original user query
     cleaned_query = (raw_query or "").strip()
@@ -108,26 +107,15 @@ def apply_plan_fallback(plan: dict, raw_query: str) -> dict:
         if isinstance(item, str) and item.strip()
     ]
 
-    # Get HyDE rewrite from the cached prediction
-    hyde_rewrite = plan.get("hyde_rewrite") or ""
-    if not isinstance(hyde_rewrite, str):
-        hyde_rewrite = ""
-    # Strip whitespace from the HyDE rewrite
-    hyde_rewrite = hyde_rewrite.strip()
-
-    # Keep retrieval usable even if the model leaves fields blank (not a failure)
+    # Keep retrieval usable even if the model leaves keywords blank (not a failure)
     if in_scope:
         # If the keywords are empty, set the fallback keywords
         if not keywords:
             keywords = fallback_keywords or ([cleaned_query] if cleaned_query else [])
-        # If the HyDE rewrite is empty, use the raw query
-        if not hyde_rewrite:
-            hyde_rewrite = cleaned_query
 
     return {
         "in_scope": in_scope,
         "keywords": keywords,
-        "hyde_rewrite": hyde_rewrite,
     }
 
 
@@ -213,11 +201,11 @@ def run_e2e_one(
             "error": None,
         }
 
-    # Hybrid retrieve with predicted keywords and HyDE
+    # Hybrid retrieve with predicted keywords and the raw user query
     pool = retrieve_one(
         db=db,
         keywords=plan["keywords"],
-        hyde_rewrite=plan["hyde_rewrite"],
+        query_text=raw_query,
         max_candidates=max_candidates,
         min_score=min_score,
     )

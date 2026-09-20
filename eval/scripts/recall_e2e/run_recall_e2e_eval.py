@@ -4,9 +4,9 @@ Run end-to-end recall (cached QU then retrieve then filter) and store prediction
 Pipeline (one model at a time):
     1. Load ground-truth rows from recall_queries.jsonl
     2. Load cached query-understanding predictions for that model
-    3. Retrieve with predicted plan (keywords and HyDE)
+    3. Retrieve with predicted keywords and the raw user query
     4. LLM-filter against the original user query
-    4. Write eval/predictions/recall_e2e/{model}.jsonl
+    5. Write eval/predictions/recall_e2e/{model}.jsonl
 
 Prediction row fields:
     id, model, status, plan, candidate_ids, fts_ids, vector_ids,
