@@ -42,6 +42,8 @@ export default function NewContactPage() {
   // Transcription step state
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
   const [transcript, setTranscript] = useState('')
+  const [isTranscribing, setIsTranscribing] = useState(false)
+  const [isVoiceRecording, setIsVoiceRecording] = useState(false)
 
   // Free-form text step state
   const [freeFormText, setFreeFormText] = useState('')
@@ -120,11 +122,13 @@ export default function NewContactPage() {
     // If no audio is selected, clear the promise ref
     if (!audioBlob) {
       asrPromiseRef.current = null
+      setIsTranscribing(false)
       return
     }
 
     // Increment the run ID for this transcription request
     const runId = ++asrRunIdRef.current
+    setIsTranscribing(true)
 
     // Create a promise to run the transcription in the background
     const promise = (async () => {
@@ -137,9 +141,11 @@ export default function NewContactPage() {
       } catch {
         // If the run ID is still the same, set the error message
         if (asrRunIdRef.current === runId) {
-          setVoiceStepError('Could not transcribe the recording. You can add notes manually or skip.')
+          setVoiceStepError('Could not transcribe the recording. You can type it yourself or skip.')
           setTranscript('')
         }
+      } finally {
+        if (asrRunIdRef.current === runId) setIsTranscribing(false)
       }
     })()
 
@@ -171,6 +177,24 @@ export default function NewContactPage() {
     navigate('/contacts')
   }
 
+  // Discard the current voice take so it is not used later
+  function handleVoiceReset() {
+    // Ignore any in-flight transcription from the previous take
+    asrRunIdRef.current += 1
+    asrPromiseRef.current = null
+    setAudioBlob(null)
+    setTranscript('')
+    setVoiceStepError('')
+    setIsTranscribing(false)
+    setIsVoiceRecording(false)
+  }
+
+  // Store the new recording and gate Continue until transcription finishes
+  function handleRecordingComplete(blob: Blob) {
+    setAudioBlob(blob)
+    setIsTranscribing(true)
+  }
+
   // Skip the current step
   function handleSkip() {
     if (step === 1) {
@@ -178,6 +202,7 @@ export default function NewContactPage() {
       setStep(2)
     } else if (step === 2) {
       // Skip voice step and move to the notes step
+      handleVoiceReset()
       setStep(3)
     } else if (step === 3) {
       // Skip notes step and move to the review step
@@ -324,9 +349,14 @@ export default function NewContactPage() {
 
         {/* Voice step */}
         {step === 2 ? (
-          <VoiceStep 
-            onRecordingComplete={setAudioBlob} 
-            error={voiceError} 
+          <VoiceStep
+            transcript={transcript}
+            onTranscriptChange={setTranscript}
+            onRecordingComplete={handleRecordingComplete}
+            onRecordingReset={handleVoiceReset}
+            onRecordingChange={setIsVoiceRecording}
+            isTranscribing={isTranscribing}
+            error={voiceError}
           />
         ) : null}
 
@@ -365,8 +395,9 @@ export default function NewContactPage() {
         {step === 2 ? (
           <div className="flex flex-col gap-3">
             <NeutralButton label="Skip" onClick={handleSkip} />
-            <GradientButton onClick={handleVoiceContinue}>
-              Continue
+            {/* Wait until recording and transcription have finished */}
+            <GradientButton onClick={handleVoiceContinue} disabled={isVoiceRecording || isTranscribing}>
+              {isTranscribing ? 'Transcribing…' : 'Continue'}
             </GradientButton>
           </div>
         ) : null}
