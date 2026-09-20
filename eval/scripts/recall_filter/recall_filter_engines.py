@@ -8,12 +8,12 @@ Models:
 
 Each run:
     1. Connect to imet_eval
-    2. FTS (GT keywords) merge with vector (GT HyDE) candidates
+    2. FTS (GT keywords) merge with vector (raw user query) candidates
     3. Filter merged candidates with LLM against the original user query
     4. Return when the batch finishes
 
 Prompt and schema match backend/ai/llm/ollama.py filter_recall_matches.
-Retrieve matches backend/routers/recall.py Phase 2 (FTS and vector then merge).
+Retrieve uses GT keywords and the raw user query so the filter is isolated from query understanding.
 
 Used by
     eval/scripts/recall_filter/run_recall_filter_eval.py
@@ -200,13 +200,14 @@ Respond with valid JSON only.
 def retrieve_one(
     db: Session,
     keywords: list[str],
-    hyde_rewrite: str,
+    query_text: str,
     max_candidates: int,
     min_score: float,
 ) -> dict:
     """
-    FTS and vector retrieve then merge
-    Same as backend/routers/recall.py
+    FTS and vector retrieve then merge.
+
+    query_text is the raw user query (same as production retrieve).
 
     Returns a dict with candidates, candidate_ids, fts_ids, vector_ids, latency_ms, and optional error.
     """
@@ -231,11 +232,11 @@ def retrieve_one(
         )
         fts_ids = [int(contact.id) for contact, _rank in fts_results]
 
-        # Semantic retrieve (embed HyDE rewrite, rank by cosine similarity)
+        # Semantic retrieve (embed query_text, rank by cosine similarity)
         vector_results: list[tuple] = []
-        cleaned_hyde = hyde_rewrite.strip()
-        if cleaned_hyde:
-            query_vector = get_embedder().embed_text(cleaned_hyde)
+        cleaned_query_text = query_text.strip()
+        if cleaned_query_text:
+            query_vector = get_embedder().embed_text(cleaned_query_text)
             # Rank contacts by cosine distance (lower = more similar)
             distance = Contact.profile_embedding.cosine_distance(query_vector).label(
                 "distance"
@@ -291,7 +292,7 @@ def retrieve_one(
 def retrieve_merged_candidates(gt_rows: list[dict]) -> list[dict]:
     """
     Build merged FTS and vector candidates for every in-scope ground truth row.
-    Uses expected.keywords and expected.hyde_rewrite
+    Uses expected.keywords and the raw user query.
     """
     from sqlalchemy import create_engine
 
@@ -326,15 +327,15 @@ def retrieve_merged_candidates(gt_rows: list[dict]) -> list[dict]:
             keywords = expected.get("keywords") or []
             if not isinstance(keywords, list):
                 keywords = []
-            hyde_rewrite = expected.get("hyde_rewrite") or ""
-            if not isinstance(hyde_rewrite, str):
-                hyde_rewrite = ""
+            query_text = row.get("query") or ""
+            if not isinstance(query_text, str):
+                query_text = ""
 
             results.append(
                 retrieve_one(
                     db=db,
                     keywords=keywords,
-                    hyde_rewrite=hyde_rewrite,
+                    query_text=query_text,
                     max_candidates=max_candidates,
                     min_score=min_score,
                 )
