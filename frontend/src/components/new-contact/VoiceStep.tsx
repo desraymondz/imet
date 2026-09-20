@@ -8,6 +8,7 @@ type VoiceStepProps = {
   onRecordingReset: () => void
   onRecordingChange: (isRecording: boolean) => void
   isTranscribing: boolean
+  hasSavedTake?: boolean
   error?: string
 }
 
@@ -25,11 +26,12 @@ export default function VoiceStep({
   onRecordingReset,
   onRecordingChange,
   isTranscribing,
+  hasSavedTake = false,
   error,
 }: VoiceStepProps) {
   // State for recording
   const [isRecording, setIsRecording] = useState(false)
-  const [hasRecording, setHasRecording] = useState(false)
+  const [hasRecording, setHasRecording] = useState(hasSavedTake)
   const [elapsed, setElapsed] = useState(0)
 
   // State for microphone error

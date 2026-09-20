@@ -66,6 +66,10 @@ export default function NewContactPage() {
   const ocrPromiseRef = useRef<Promise<void> | null>(null)
   const asrPromiseRef = useRef<Promise<void> | null>(null)
 
+  // Ignore a build-contact result if the user went back before it finished
+  const buildRunIdRef = useRef(0)
+  const lastBuiltInputsRef = useRef<{ transcript: string; ocrText: string; freeFormText: string } | null>(null)
+
   // Create a preview URL when the user picks an image
   useEffect(() => {
     if (!imageFile) {
@@ -177,6 +181,19 @@ export default function NewContactPage() {
     navigate('/contacts')
   }
 
+  // Go back one capture step safely without discarding photo, voice, or notes
+  function handleBack() {
+    if (step === 1 || isVoiceRecording) return
+
+    // Cancel building the review draft to prevent it from jumping the user forward
+    if (step === 3 && isBuilding) {
+      buildRunIdRef.current += 1
+      setIsBuilding(false)
+    }
+
+    setStep((step - 1) as 1 | 2 | 3)
+  }
+
   // Discard the current voice take so it is not used later
   function handleVoiceReset() {
     // Ignore any in-flight transcription from the previous take
@@ -276,23 +293,41 @@ export default function NewContactPage() {
     // If OCR/ASR are still running, wait here so the LLM uses the latest text
     await Promise.allSettled([ocrPromiseRef.current, asrPromiseRef.current].filter(Boolean))
 
+    const inputs = { transcript, ocrText, freeFormText }
+    const lastBuilt = lastBuiltInputsRef.current
+
+    // Reuse the existing review draft when the user only went back and did not change inputs
+    if (
+      lastBuilt &&
+      lastBuilt.transcript === inputs.transcript &&
+      lastBuilt.ocrText === inputs.ocrText &&
+      lastBuilt.freeFormText === inputs.freeFormText
+    ) {
+      setStep(4)
+      return
+    }
+
+    const runId = ++buildRunIdRef.current
     setIsBuilding(true)
     
     try {
       // Call the LLM API to build the contact draft
-      const built = await buildDraft(transcript, ocrText, freeFormText)
+      const built = await buildDraft(inputs.transcript, inputs.ocrText, inputs.freeFormText)
+      if (buildRunIdRef.current !== runId) return
+      lastBuiltInputsRef.current = inputs
       // Update the draft state with the response
       setDraft(built)
       // Move to the review step
       setStep(4)
     } catch {
+      if (buildRunIdRef.current !== runId) return
       // Still land on review so the user can fill fields manually
       setReviewStepError('Could not build the profile. Please try again or edit the fields manually.')
       setDraft(emptyDraft())
       // Move to the review step
       setStep(4)
     } finally {
-      setIsBuilding(false)
+      if (buildRunIdRef.current === runId) setIsBuilding(false)
     }
   }
 
@@ -333,7 +368,9 @@ export default function NewContactPage() {
       {/* Common header for all steps */}
       <NewContactHeader 
         step={step} 
-        onClose={handleClose} 
+        onClose={handleClose}
+        onBack={step === 1 ? undefined : handleBack}
+        backDisabled={isVoiceRecording}
       />
 
       {/* Step content */}
@@ -356,6 +393,7 @@ export default function NewContactPage() {
             onRecordingReset={handleVoiceReset}
             onRecordingChange={setIsVoiceRecording}
             isTranscribing={isTranscribing}
+            hasSavedTake={Boolean(audioBlob) || Boolean(transcript.trim())}
             error={voiceError}
           />
         ) : null}
