@@ -113,5 +113,3 @@ class RecallQueryPlan(BaseModel):
     in_scope: bool
     # Lexical terms for Postgres FTS
     keywords: list[str]
-    # Hypothetical profile blurb to embed (HyDE) for semantic recall
-    hyde_rewrite: str

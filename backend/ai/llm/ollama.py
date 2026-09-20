@@ -45,9 +45,8 @@ RECALL_QUERY_PLAN_OLLAMA_SCHEMA = {
     "properties": {
         "in_scope": {"type": "boolean"},
         "keywords": {"type": "array", "items": {"type": "string"}},
-        "hyde_rewrite": {"type": "string"},
     },
-    "required": ["in_scope", "keywords", "hyde_rewrite"],
+    "required": ["in_scope", "keywords"],
 }
 
 # Strings that are considered null or empty
@@ -264,7 +263,7 @@ Now extract a contact profile from this information:
 
     def understand_recall_query(self, query: str) -> RecallQueryPlan | None:
         """
-        Understand a recall query with scope check, FTS keywords, and HyDE rewrite.
+        Understand a recall query with scope check and FTS keywords.
 
         Returns None on LLM/parse failure
         Empty input is treated as out of scope.
@@ -277,7 +276,7 @@ Now extract a contact profile from this information:
 
         # If the query is empty, return an empty recall query plan
         if not cleaned_query:
-            return RecallQueryPlan(in_scope=False, keywords=[], hyde_rewrite="")
+            return RecallQueryPlan(in_scope=False, keywords=[])
 
         # Build the prompt for the LLM to understand the recall query
         prompt = f"""You only plan contact-list search. You are not a general assistant. Be strict.
@@ -292,18 +291,16 @@ Produce a query plan with:
   When unsure, return false.
 - keywords: short lexical search terms as a JSON string array for full-text search
   (names, companies, roles, places, hobbies). Empty array if out of scope.
-- hyde_rewrite: 1-2 sentences written like a contact profile_text that would match
-  what they are looking for (Hypothetical Document Embedding). Empty string if out of scope.
 
 Example in scope:
 User asked: Who did I meet that likes hiking?
 Output:
-{{"in_scope": true, "keywords": ["hiking", "outdoors"], "hyde_rewrite": "Enjoys hiking and outdoor activities. Often talks about trails and weekend mountain trips."}}
+{{"in_scope": true, "keywords": ["hiking", "outdoors"]}}
 
 Example out of scope:
 User asked: what's the capital of China
 Output:
-{{"in_scope": false, "keywords": [], "hyde_rewrite": ""}}
+{{"in_scope": false, "keywords": []}}
 
 Respond with valid JSON only.
 """
@@ -349,31 +346,19 @@ Respond with valid JSON only.
                     # If the keywords are not a string or list, set an empty list
                     keywords = []
 
-                # Get the HyDE rewrite value
-                hyde_rewrite = data.get("hyde_rewrite", "")
-                # If the HyDE rewrite value is not a string, set an empty string
-                if not isinstance(hyde_rewrite, str):
-                    hyde_rewrite = ""
-                # Strip whitespace from the HyDE rewrite value
-                hyde_rewrite = hyde_rewrite.strip()
-
                 # Get the in-scope value
                 in_scope = bool(data.get("in_scope", False))
 
-                # Keep retrieval usable even if the model leaves fields blank (not a failure)
+                # Keep retrieval usable even if the model leaves keywords blank (not a failure)
                 if in_scope:
                     # If the keywords are empty, set the fallback keywords
                     if not keywords:
                         keywords = fallback_keywords or [cleaned_query]
-                    # If the HyDE rewrite value is empty, set the fallback HyDE rewrite value
-                    if not hyde_rewrite:
-                        hyde_rewrite = cleaned_query
 
                 # Return the recall query plan
                 return RecallQueryPlan(
                     in_scope=in_scope,
                     keywords=keywords,
-                    hyde_rewrite=hyde_rewrite,
                 )
             except (ValidationError, ValueError, json.JSONDecodeError, TypeError, Exception) as e:
                 # Log the error (parse or LLM failure)

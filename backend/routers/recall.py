@@ -71,7 +71,7 @@ def search_contacts(
     db: Session = Depends(get_db),
 ):
     """
-    Hybrid recall: query understanding to extract in_scope, keywords, hyde_rewrite
+    Hybrid recall: query understanding to extract in_scope and keywords
     FTS and vector retrieval to get candidate contacts
     LLM filter to get the final results
     """
@@ -85,7 +85,7 @@ def search_contacts(
             detail="Query must not be empty",
         )
 
-    # Phase 1: understand query (scope, FTS keywords, HyDE rewrite)
+    # Phase 1: understand query (scope, FTS keywords)
     plan = get_llm().understand_recall_query(query)
     # Return error status on LLM/parse failure
     if plan is None:
@@ -93,10 +93,9 @@ def search_contacts(
         return RecallSearchResponse(status="error", results=[])
 
     logger.info(
-        "Recall query plan: in_scope=%s keywords=%r hyde_rewrite=%r",
+        "Recall query plan: in_scope=%s keywords=%r",
         plan.in_scope,
         plan.keywords,
-        plan.hyde_rewrite,
     )
 
     # Out-of-scope questions return no contacts
@@ -111,8 +110,8 @@ def search_contacts(
         limit=settings.recall_max_candidates,
     )
 
-    # Phase 2b: semantic retrieve (embed HyDE rewrite, rank by cosine similarity)
-    query_vector = get_embedder().embed_text(plan.hyde_rewrite)
+    # Phase 2b: semantic retrieve (embed the raw user query, rank by cosine similarity)
+    query_vector = get_embedder().embed_text(query)
     # Rank contacts by cosine distance (lower = more similar)
     distance = Contact.profile_embedding.cosine_distance(query_vector).label("distance")
     # Get the user's embedded contacts ordered by similarity
