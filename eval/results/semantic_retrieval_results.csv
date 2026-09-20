@@ -1,5 +1,5 @@
-model,metric,value,n,latency_ms_mean
-bge_base_en_v1.5,recall@10,0.6391016391016391,39,37.6
-bge_base_en_v1.5,hit@10,0.9487179487179487,39,37.6
-bge_base_en_v1.5,recall@20,0.7667254042254041,39,37.6
-bge_base_en_v1.5,hit@20,0.9743589743589743,39,37.6
+model,metric,value,n,recall_min_score,latency_ms_mean
+bge_base_en_v1.5,recall@10,0.5753441003441003,39,0.55,37.6
+bge_base_en_v1.5,hit@10,0.8974358974358975,39,0.55,37.6
+bge_base_en_v1.5,recall@20,0.656980981980982,39,0.55,37.6
+bge_base_en_v1.5,hit@20,0.9230769230769231,39,0.55,37.6
