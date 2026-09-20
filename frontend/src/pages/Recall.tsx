@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { api } from '../libs/api'
 import ContactCard from '../components/ContactCard'
 import GradientButton from '../components/GradientButton'
+import Spinner from '../components/Spinner'
 import type { RecallResult, RecallSearchResponse, RecallStatus } from '../types/contact'
 
 function messageForRecallStatus(status: RecallStatus | null): string {
@@ -42,6 +43,8 @@ export default function RecallPage() {
 
   // Handle search form submission
   function handleSearch() {
+    if (searchMutation.isPending) return
+
     setError('')
     const trimmed = query.trim()
 
@@ -65,9 +68,6 @@ export default function RecallPage() {
       },
     })
   }
-
-  // Loading state
-  if (searchMutation.isPending) return <p className="p-4">Searching...</p>
 
   // Get the status message for the results area
   const statusMessage = !hasSearched
@@ -105,12 +105,15 @@ export default function RecallPage() {
         ) : null}
 
         {/* Search button */}
-        <GradientButton type="submit">Search</GradientButton>
+        <GradientButton type="submit" disabled={searchMutation.isPending}>
+          Search
+        </GradientButton>
       </form>
 
-
       {/* Results area */}
-      {results.length > 0 ? (
+      {searchMutation.isPending ? (
+        <Spinner label="Searching contacts" />
+      ) : results.length > 0 ? (
         <ul className="mt-5 space-y-4">
           {results.map(result => (
             <li key={result.contact.id}>

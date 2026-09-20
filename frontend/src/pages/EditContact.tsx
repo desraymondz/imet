@@ -6,6 +6,7 @@ import { api } from '../libs/api'
 // UI components
 import FixedBottomBar from '../components/FixedBottomBar'
 import GradientButton from '../components/GradientButton'
+import Spinner from '../components/Spinner'
 import ReviewStep, { type ContactDraft } from '../components/new-contact/ReviewStep'
 import type { Contact } from '../types/contact'
 
@@ -125,7 +126,7 @@ export default function EditContactPage() {
         <header className="px-5 pt-5">
           <CloseButton onClose={handleClose} />
         </header>
-        <p className="p-5">Loading...</p>
+        <Spinner label="Loading contact" />
       </div>
     )
   }
