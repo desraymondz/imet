@@ -1,12 +1,14 @@
 """
-Run end-to-end recall (cached QU then retrieve then filter) and store predictions
+Run end-to-end recall (production QU then retrieve then filter) and store predictions
 
 Pipeline (one model at a time):
     1. Load ground-truth rows from recall_queries.jsonl
-    2. Load cached query-understanding predictions for that model
+    2. Query understanding with the production prompt (in_scope + keywords, no HyDE)
     3. Retrieve with predicted keywords and the raw user query
     4. LLM-filter against the original user query
     5. Write eval/predictions/recall_e2e/{model}.jsonl
+
+Does not read eval/predictions/query_understanding (that run keeps HyDE for the ablation).
 
 Prediction row fields:
     id, model, status, plan, candidate_ids, fts_ids, vector_ids,
@@ -28,7 +30,6 @@ Requires
     ollama pull qwen3.5:0.8b / 2b / 4b
     EVAL_DATABASE_URL in .env.local
     python eval/scripts/recall/seed_eval_db.py
-    python eval/scripts/query_understanding/run_query_understanding_eval.py --model <model>
 """
 
 from __future__ import annotations
@@ -40,7 +41,6 @@ from pathlib import Path
 from recall_e2e_engines import (
     OLLAMA_TAGS,
     load_jsonl,
-    load_query_understanding_pred,
     run_ollama_model,
 )
 
@@ -90,17 +90,8 @@ def run_model(model: str, gt_rows: list[dict]) -> None:
         known = ", ".join(OLLAMA_TAGS)
         raise SystemExit(f"Unknown model '{model}'. Choose one of: {known}")
 
-    # Load cached QU predictions and require every ground-truth id
-    qu_by_id = load_query_understanding_pred(model)
-    missing = [row["id"] for row in gt_rows if int(row["id"]) not in qu_by_id]
-    if missing:
-        raise SystemExit(
-            f"QU predictions for {model} are missing ids: {missing}. "
-            "Re-run query-understanding eval for this model."
-        )
-
-    # Call retrieve and filter on all queries
-    results = run_ollama_model(model, gt_rows, qu_by_id)
+    # Production QU, retrieve, and filter on all queries
+    results = run_ollama_model(model, gt_rows)
 
     # Join GT metadata with results and write
     out_path = write_predictions(model, gt_rows, results)
