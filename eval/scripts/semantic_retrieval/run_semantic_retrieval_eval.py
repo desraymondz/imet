@@ -4,15 +4,14 @@ Run semantic retrieval over in-scope recall queries and store ranked predictions
 Pipeline:
     1. Load ground-truth rows from recall_queries.jsonl
     2. Keep in_scope rows only (skip out-of-scope with no embed or SQL)
-    3. Embed expected hyde_rewrite and the raw user query with BGE then rank eval contacts
+    3. Embed the raw user query with BGE then rank eval contacts
     4. Write eval/predictions/semantic_retrieval/bge_base_en_v1.5.jsonl
 
 Prediction row fields:
     id, query_source, ranked, latency_ms, error
 
 query_source:
-    hyde_rewrite  expected HyDE text (main path)
-    raw_query     original user query (app fallback when HyDE is blank)
+    raw_query  original user query (selected based on QU evaluation criteria)
 
 Usage
     python eval/scripts/semantic_retrieval/run_semantic_retrieval_eval.py
@@ -101,27 +100,13 @@ def main() -> None:
 
     print(f"Keeping {len(kept)} in-scope queries")
 
-    # Collect expected HyDE rewrites and raw user queries (app fallback)
-    hyde_texts = [(row.get("expected") or {}).get("hyde_rewrite") or "" for row in kept]
+    # Embed the raw user query
     raw_texts = [(row.get("query") or "") for row in kept]
 
-    # Step 3: Rank both query sources in one BGE pass then write predictions
-    n = len(kept)
-    all_results = run_bge_engine(hyde_texts + raw_texts)
-    hyde_results = all_results[:n]
-    raw_results = all_results[n:]
+    # Step 3: Rank then write predictions
+    raw_results = run_bge_engine(raw_texts)
 
     records: list[dict] = []
-    for row, result in zip(kept, hyde_results):
-        records.append(
-            {
-                "id": row["id"],
-                "query_source": "hyde_rewrite",
-                "ranked": result["ranked"],
-                "latency_ms": result["latency_ms"],
-                "error": result["error"],
-            }
-        )
     for row, result in zip(kept, raw_results):
         records.append(
             {
