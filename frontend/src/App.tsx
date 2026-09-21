@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import LoginPage from './pages/Login.tsx'
+import RegisterPage from './pages/Register.tsx'
 import ContactsPage from './pages/Contacts.tsx'
 import RecallPage from './pages/Recall.tsx'
 import NewContactPage from './pages/NewContact.tsx'
@@ -48,6 +49,7 @@ function App() {
       <Routes>
         {/* Public: no session check */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
         {/* Protected: RequireAuth checks /auth/me, then AppLayout (wave + nav) */}
         <Route

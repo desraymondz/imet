@@ -1,27 +1,60 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
+import axios from 'axios'
 import { api } from '../libs/api.ts'
 import GradientButton from '../components/GradientButton'
 
-export default function LoginPage() {
+const PASSWORD_MIN_LENGTH = 8
+const PASSWORD_MAX_LENGTH = 72
+
+function registerErrorMessage(error: unknown): string {
+  if (!axios.isAxiosError(error)) {
+    return 'Could not create account'
+  }
+
+  const status = error.response?.status
+  const detail = error.response?.data?.detail
+
+  // Duplicate email from POST /auth/register
+  if (status === 400 && typeof detail === 'string') {
+    return detail
+  }
+
+  // Pydantic validation (email format, password length)
+  if (status === 422) {
+    return 'Check your email and password (8-72 characters)'
+  }
+
+  return 'Could not create account'
+}
+
+export default function RegisterPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
 
-  async function handleLogin() {
+  async function handleRegister() {
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+
+    if (password.length < PASSWORD_MIN_LENGTH || password.length > PASSWORD_MAX_LENGTH) {
+      setError('Password must be 8-72 characters')
+      return
+    }
+
     try {
-      await api.post(
-        '/auth/login',
-        new URLSearchParams({ username: email, password }),
-      )
+      await api.post('/auth/register', { email, password })
       // Drop a cached 401 from visiting a protected route while logged out
       queryClient.removeQueries({ queryKey: ['auth', 'me'] })
       navigate('/contacts')
-    } catch {
-      setError('Invalid email or password')
+    } catch (err) {
+      setError(registerErrorMessage(err))
     }
   }
 
@@ -43,12 +76,12 @@ export default function LoginPage() {
           alt="iMet"
         />
 
-        {/* Login form */}
+        {/* Register form */}
         <form
           className="flex flex-col gap-4"
           onSubmit={e => {
             e.preventDefault()
-            void handleLogin()
+            void handleRegister()
           }}
         >
           {/* Error message */}
@@ -77,21 +110,39 @@ export default function LoginPage() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
+              autoComplete="new-password"
+              minLength={PASSWORD_MIN_LENGTH}
+              maxLength={PASSWORD_MAX_LENGTH}
               required
             />
           </label>
 
-          {/* Login button */}
+          {/* Confirm password input */}
+          <label className="field">
+            <span className="field-label">Confirm password</span>
+            <input
+              type="password"
+              className="input"
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              autoComplete="new-password"
+              minLength={PASSWORD_MIN_LENGTH}
+              maxLength={PASSWORD_MAX_LENGTH}
+              required
+            />
+          </label>
+
+          {/* Register button */}
           <div className="mt-2">
-            <GradientButton type="submit">Log in</GradientButton>
+            <GradientButton type="submit">Create account</GradientButton>
           </div>
         </form>
 
         <p className="mt-4 text-center text-[14px] text-[var(--fg-2)]">
-          Don't have an account?{' '}
-          <Link to="/register" className="font-medium text-[var(--violet)]">
-            Create an account
+          Already have an account?{' '}
+          <Link to="/login" className="font-medium text-[var(--violet)]">
+            Log in
           </Link>
         </p>
       </div>
