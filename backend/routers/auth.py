@@ -6,11 +6,12 @@ from backend.auth import (
     clear_auth_cookie,
     create_access_token,
     hash_password,
+    normalise_email,
     set_auth_cookie,
     verify_password,
 )
 from backend.db import get_db
-from backend.dependencies import get_current_user
+from backend.dependencies import find_user_by_email, get_current_user
 from backend.models import User
 from backend.schemas import RegisterRequest, UserOut
 
@@ -25,7 +26,7 @@ def _issue_session(response: Response, email: str) -> dict[str, str]:
     - Store it in an HTTP-only cookie and sends it on later /api/* calls
     - Return it for /docs Bearer auth
     """
-    token = create_access_token({"sub": email})
+    token = create_access_token({"sub": normalise_email(email)})
     set_auth_cookie(response, token)
     return {
         "access_token": token,
@@ -44,8 +45,8 @@ def login(
     Sets an HTTP-only cookie and returns an access token if successful,
     otherwise raises a 401 Unauthorised exception.
     """
-    # Look up user by email
-    existing_user = db.query(User).filter(User.email == form_data.username).first()
+    # Look up user by email (trimmed, lowercase)
+    existing_user = find_user_by_email(db, form_data.username)
 
     # If the user is not found or the password is incorrect, raise an exception
     if not existing_user or not verify_password(form_data.password, existing_user.hashed_password):
@@ -69,8 +70,8 @@ def register(
     Sets an HTTP-only cookie and returns an access token if successful,
     otherwise raises a 400 Bad Request exception.
     """
-    # Check if the email is already taken
-    existing_email = db.query(User).filter(User.email == body.email).first()
+    # Check if the email is already taken (case-insensitive)
+    existing_email = find_user_by_email(db, body.email)
     if existing_email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

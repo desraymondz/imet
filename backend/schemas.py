@@ -3,7 +3,9 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
+
+from backend.auth import normalise_email
 
 # Status of a recall search (success, out of scope, no matches, error)
 RecallStatus = Literal["ok", "out_of_scope", "no_matches", "error"]
@@ -15,6 +17,13 @@ class RegisterRequest(BaseModel):
     """Request schema for registering a new user"""
     email: EmailStr
     password: str = Field(min_length=PASSWORD_MIN_LENGTH, max_length=PASSWORD_MAX_LENGTH)
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalise_register_email(cls, value: object) -> object:
+        if isinstance(value, str):
+            return normalise_email(value)
+        return value
 
 
 class UserOut(BaseModel):

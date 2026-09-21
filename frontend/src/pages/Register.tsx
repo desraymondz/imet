@@ -3,10 +3,13 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { api } from '../libs/api.ts'
+import {
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MIN_LENGTH,
+  normaliseEmail,
+  registerValidationMessage,
+} from '../libs/authValidation.ts'
 import GradientButton from '../components/GradientButton'
-
-const PASSWORD_MIN_LENGTH = 8
-const PASSWORD_MAX_LENGTH = 72
 
 function registerErrorMessage(error: unknown): string {
   if (!axios.isAxiosError(error)) {
@@ -38,18 +41,14 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
 
   async function handleRegister() {
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
-      return
-    }
-
-    if (password.length < PASSWORD_MIN_LENGTH || password.length > PASSWORD_MAX_LENGTH) {
-      setError('Password must be 8-72 characters')
+    const validationError = registerValidationMessage(email, password, confirmPassword)
+    if (validationError) {
+      setError(validationError)
       return
     }
 
     try {
-      await api.post('/auth/register', { email, password })
+      await api.post('/auth/register', { email: normaliseEmail(email), password })
       // Drop a cached 401 from visiting a protected route while logged out
       queryClient.removeQueries({ queryKey: ['auth', 'me'] })
       navigate('/contacts')
@@ -79,6 +78,7 @@ export default function RegisterPage() {
         {/* Register form */}
         <form
           className="flex flex-col gap-4"
+          noValidate
           onSubmit={e => {
             e.preventDefault()
             void handleRegister()

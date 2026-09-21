@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { api } from '../libs/api.ts'
+import { loginValidationMessage, normaliseEmail } from '../libs/authValidation.ts'
 import GradientButton from '../components/GradientButton'
 
 export default function LoginPage() {
@@ -12,10 +13,16 @@ export default function LoginPage() {
   const [error, setError] = useState('')
 
   async function handleLogin() {
+    const validationError = loginValidationMessage(email, password)
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
     try {
       await api.post(
         '/auth/login',
-        new URLSearchParams({ username: email, password }),
+        new URLSearchParams({ username: normaliseEmail(email), password }),
       )
       // Drop a cached 401 from visiting a protected route while logged out
       queryClient.removeQueries({ queryKey: ['auth', 'me'] })
@@ -46,6 +53,7 @@ export default function LoginPage() {
         {/* Login form */}
         <form
           className="flex flex-col gap-4"
+          noValidate
           onSubmit={e => {
             e.preventDefault()
             void handleLogin()

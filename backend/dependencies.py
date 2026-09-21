@@ -3,15 +3,24 @@
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from backend.auth import ACCESS_COOKIE_NAME, decode_access_token
+from backend.auth import ACCESS_COOKIE_NAME, decode_access_token, normalise_email
 from backend.db import get_db
 from backend.models import User
 
 # Get the JWT from the Authorisation header
 # References: https://fastapi.tiangolo.com/tutorial/security/simple-oauth2/
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
+
+
+def find_user_by_email(db: Session, email: str) -> User | None:
+    """Look up a user by email."""
+    normalised = normalise_email(email)
+    if not normalised:
+        return None
+    return db.query(User).filter(func.lower(User.email) == normalised).first()
 
 
 def get_current_user(
@@ -45,8 +54,8 @@ def get_current_user(
     if email is None:
         raise credentials_exception
 
-    # Get the user from the database
-    user = db.query(User).filter(User.email == email).first()
+    # Get the user from the database (case-insensitive, matches register/login)
+    user = find_user_by_email(db, email)
     # If the user is not found, raise an exception
     if user is None:
         raise credentials_exception

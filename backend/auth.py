@@ -10,6 +10,11 @@ from backend.config import settings
 ACCESS_COOKIE_NAME = "access_token"
 
 
+def normalise_email(email: str) -> str:
+    """Trim and lowercase."""
+    return email.strip().lower()
+
+
 def hash_password(plain: str) -> str:
     """Hash a plain text password."""
     return bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
