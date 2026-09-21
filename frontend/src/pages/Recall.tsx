@@ -70,12 +70,15 @@ export default function RecallPage() {
     })
   }
 
-  // Get the status message for the results area
-  const statusMessage = !hasSearched
-    ? 'Ask about someone you met.'
-    : !error && results.length === 0
+  // Status for an empty results area after a search
+  const statusMessage =
+    hasSearched && !error && results.length === 0
       ? messageForRecallStatus(recallStatus) || 'No matches found.'
       : ''
+
+  // Center the search field before any results or status take the page
+  const isIdleLayout =
+    !searchMutation.isPending && results.length === 0 && !statusMessage
 
   return (
     <div className="mx-auto flex min-h-full w-full max-w-md flex-col px-5 pb-4 pt-6">
@@ -84,35 +87,41 @@ export default function RecallPage() {
         <LogoutButton />
       </div>
       {/* Main content */}
-      <form
-        className="mt-4 flex flex-col gap-3"
-        onSubmit={e => {
-          e.preventDefault()
-          handleSearch()
-        }}
+      <div
+        className={
+          isIdleLayout ? 'flex flex-1 flex-col justify-center' : undefined
+        }
       >
-        {/* Search input */}
-        <label className="field">
-          <span className="sr-only">Search query</span>
-          <input
-            type="text"
-            className="input"
-            placeholder="Who did I meet that likes hiking?"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-          />
-        </label>
+        <form
+          className={isIdleLayout ? 'flex flex-col gap-3' : 'mt-4 flex flex-col gap-3'}
+          onSubmit={e => {
+            e.preventDefault()
+            handleSearch()
+          }}
+        >
+          {/* Search input */}
+          <label className="field">
+            <span className="sr-only">Search query</span>
+            <input
+              type="text"
+              className="input"
+              placeholder="Who did I meet that likes hiking?"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+            />
+          </label>
 
-        {/* Error message */}
-        {error ? (
-          <p className="text-error">{error}</p>
-        ) : null}
+          {/* Error message */}
+          {error ? (
+            <p className="text-error">{error}</p>
+          ) : null}
 
-        {/* Search button */}
-        <GradientButton type="submit" disabled={searchMutation.isPending}>
-          Search
-        </GradientButton>
-      </form>
+          {/* Search button */}
+          <GradientButton type="submit" disabled={searchMutation.isPending}>
+            Search
+          </GradientButton>
+        </form>
+      </div>
 
       {/* Results area */}
       {searchMutation.isPending ? (
@@ -127,7 +136,7 @@ export default function RecallPage() {
         </ul>
       ) : statusMessage ? (
         <div className="flex flex-1 items-center justify-center">
-          <p className="t-caption text-center">{statusMessage}</p>
+          <p className="text-center text-[14px] text-[var(--fg-2)]">{statusMessage}</p>
         </div>
       ) : null}
     </div>

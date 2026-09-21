@@ -37,9 +37,11 @@ export default function ContactsPage() {
 
           {/* No contacts found state */}
           {totalCount === 0 ? (
-            <p className="mt-6 text-center text-[14px] text-[var(--fg-2)]">
-              No contacts yet.
-            </p>
+            <div className="flex flex-1 items-center justify-center">
+              <p className="text-center text-[14px] text-[var(--fg-2)]">
+                No contacts yet.
+              </p>
+            </div>
           ) : (
             <ul className="mt-5 space-y-4">
               {(contacts ?? []).map(contact => (
