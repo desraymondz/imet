@@ -140,7 +140,7 @@ export default function VoiceStep({
   const statusText = isRecording
     ? 'Recording…'
     : hasRecording
-      ? 'Recording saved'
+      ? ''
       : 'Tap to start recording'
 
   return (
@@ -164,9 +164,11 @@ export default function VoiceStep({
         </p>
 
         {/* Recording status */}
-        <p className="text-[var(--fg-3)]">
-          {statusText}
-        </p>
+        {statusText ? (
+          <p className="text-[var(--fg-3)]">
+            {statusText}
+          </p>
+        ) : null}
 
         {/* Record / stop button (hidden after a take) */}
         {isRecording || !hasRecording ? (
@@ -200,7 +202,7 @@ export default function VoiceStep({
             <label className="field">
               <span className="field-label">Transcript</span>
               <textarea
-                className="input min-h-72 resize-none leading-relaxed"
+                className="input min-h-86 resize-none leading-relaxed"
                 placeholder="No speech detected."
                 value={transcript}
                 onChange={e => onTranscriptChange(e.target.value)}
