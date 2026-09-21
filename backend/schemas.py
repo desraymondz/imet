@@ -3,10 +3,18 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
 
 # Status of a recall search (success, out of scope, no matches, error)
 RecallStatus = Literal["ok", "out_of_scope", "no_matches", "error"]
+
+PASSWORD_MAX_LENGTH = 72
+PASSWORD_MIN_LENGTH = 8
+
+class RegisterRequest(BaseModel):
+    """Request schema for registering a new user"""
+    email: EmailStr
+    password: str = Field(min_length=PASSWORD_MIN_LENGTH, max_length=PASSWORD_MAX_LENGTH)
 
 
 class ContactCreate(BaseModel):

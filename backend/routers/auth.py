@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from backend.auth import create_access_token, verify_password
+from backend.auth import create_access_token, hash_password, verify_password
 from backend.db import get_db
 from backend.models import User
+from backend.schemas import RegisterRequest
 
 # Define the prefix and tags for the auth router
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -40,17 +41,15 @@ def login(
 
 @router.post("/register")
 def register(
-    form_data: OAuth2PasswordRequestForm = Depends(),
+    body: RegisterRequest,
     db: Session = Depends(get_db),
 ):
     """
     Register a new user with email and password.
     Returns an access token if successful, otherwise raises a 400 Bad Request exception.
     """
-    from backend.auth import hash_password
-
     # Check if the email is already taken
-    existing_email = db.query(User).filter(User.email == form_data.username).first()
+    existing_email = db.query(User).filter(User.email == body.email).first()
     if existing_email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -59,8 +58,8 @@ def register(
 
     # Create a new user
     new_user = User(
-        email=form_data.username,
-        hashed_password=hash_password(form_data.password),
+        email=body.email,
+        hashed_password=hash_password(body.password),
     )
     db.add(new_user)
     db.commit()
