@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../libs/api'
 import ContactCard from '../components/ContactCard'
+import LogoutButton from '../components/LogoutButton'
 import Spinner from '../components/Spinner'
 import type { Contact } from '../types/contact'
 
@@ -19,7 +20,10 @@ export default function ContactsPage() {
 
   return (
     <div className="mx-auto flex min-h-full w-full max-w-md flex-col px-5 pb-4 pt-6">
-      <h1>Contacts</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1>Contacts</h1>
+        <LogoutButton />
+      </div>
 
       {isLoading ? (
         <Spinner label="Loading contacts" />

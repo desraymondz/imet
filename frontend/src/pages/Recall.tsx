@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { api } from '../libs/api'
 import ContactCard from '../components/ContactCard'
 import GradientButton from '../components/GradientButton'
+import LogoutButton from '../components/LogoutButton'
 import Spinner from '../components/Spinner'
 import type { RecallResult, RecallSearchResponse, RecallStatus } from '../types/contact'
 
@@ -78,7 +79,10 @@ export default function RecallPage() {
 
   return (
     <div className="mx-auto flex min-h-full w-full max-w-md flex-col px-5 pb-4 pt-6">
-      <h1>Recall</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1>Recall</h1>
+        <LogoutButton />
+      </div>
       {/* Main content */}
       <form
         className="mt-4 flex flex-col gap-3"
