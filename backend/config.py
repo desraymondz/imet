@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     secret_key: str
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
+    # Set true when the app is served over HTTPS
+    cookie_secure: bool = False
     debug: bool = False
 
     ollama_host: str

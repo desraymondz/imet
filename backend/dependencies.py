@@ -1,24 +1,25 @@
 # Reusable functions injected into route handlers with Depends()
 # References: https://fastapi.tiangolo.com/reference/dependencies/
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
-from backend.auth import decode_access_token
+from backend.auth import ACCESS_COOKIE_NAME, decode_access_token
 from backend.db import get_db
 from backend.models import User
 
 # Get the JWT from the Authorisation header
 # References: https://fastapi.tiangolo.com/tutorial/security/simple-oauth2/
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
 
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    request: Request,
+    bearer_token: str | None = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ) -> User:
-    """Get the current user from the JWT"""
+    """Get the current user from the HTTP-only cookie, or a Bearer token (Swagger /docs)."""
 
     # Create an exception for invalid or expired tokens
     credentials_exception = HTTPException(
@@ -26,6 +27,11 @@ def get_current_user(
         detail="Invalid or expired token",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+    # Use the cookie (browser session) if available and fall back to Bearer for /docs
+    token = request.cookies.get(ACCESS_COOKIE_NAME) or bearer_token
+    if not token:
+        raise credentials_exception
 
     # Decode the JWT and get the payload
     payload = decode_access_token(token)

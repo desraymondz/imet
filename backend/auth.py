@@ -2,8 +2,12 @@ from datetime import datetime, timedelta, timezone
 
 import bcrypt
 from jose import JWTError, jwt
+from starlette.responses import Response
 
 from backend.config import settings
+
+# Cookie the browser stores and sends on later requests. HttpOnly so JS cannot read it.
+ACCESS_COOKIE_NAME = "access_token"
 
 
 def hash_password(plain: str) -> str:
@@ -37,3 +41,27 @@ def decode_access_token(token: str) -> dict | None:
     except JWTError:
         # If the token is invalid, return None
         return None
+
+
+def set_auth_cookie(response: Response, token: str) -> None:
+    """Store the JWT in an HTTP-only cookie."""
+    response.set_cookie(
+        key=ACCESS_COOKIE_NAME,
+        value=token,
+        httponly=True,
+        samesite="lax",
+        path="/",
+        max_age=settings.access_token_expire_minutes * 60,
+        secure=settings.cookie_secure,
+    )
+
+
+def clear_auth_cookie(response: Response) -> None:
+    """Clear the auth cookie on logout."""
+    response.delete_cookie(
+        key=ACCESS_COOKIE_NAME,
+        path="/",
+        httponly=True,
+        samesite="lax",
+        secure=settings.cookie_secure,
+    )

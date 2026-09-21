@@ -3,34 +3,28 @@
 import axios from 'axios'
 
 // Create a new axios instance with the base URL of the backend API
+// withCredentials: send/store the HTTP-only session cookie
 export const api = axios.create({
     baseURL: '/api',
+    withCredentials: true,
 })
 
-// Attach JWT to every request automatically
-// Reference: https://axios-http.com/docs/interceptors
-api.interceptors.request.use((config) => {
-    // Get the JWT token from localStorage
-    // TODO: change to HTTP-only cookie
-    const token = localStorage.getItem('token')
-    
-    // If the token is found, attach it to the request headers
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-})
-
-// Redirect to login on 401 Unauthorized
+// Redirect to login on 401 Unauthorised (expired/missing session)
 api.interceptors.response.use(
     (response) => response,
     (error) => {
         // If the response is a 401 Unauthorized
         if (error.response?.status === 401) {
-            // Remove the JWT token from localStorage
-            localStorage.removeItem('token')
-            // Redirect to the login page by reloading the page
-            window.location.href = '/login'
+            const url = error.config?.url ?? ''
+            // Login or register: 401 is a bad credential
+            // /auth/me is handled by RequireAuth
+            const skipRedirect =
+                url.includes('/auth/login') ||
+                url.includes('/auth/register') ||
+                url.includes('/auth/me')
+            if (!skipRedirect && window.location.pathname !== '/login') {
+                window.location.href = '/login'
+            }
         }
         return Promise.reject(error)
     }

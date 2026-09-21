@@ -17,6 +17,14 @@ class RegisterRequest(BaseModel):
     password: str = Field(min_length=PASSWORD_MIN_LENGTH, max_length=PASSWORD_MAX_LENGTH)
 
 
+class UserOut(BaseModel):
+    """Response schema for the current user"""
+    id: int
+    email: str
+
+    model_config = {"from_attributes": True}
+
+
 class ContactCreate(BaseModel):
     """Request schema for creating a contact"""
     display_name: str | None = None

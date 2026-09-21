@@ -1,21 +1,24 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { api } from '../libs/api.ts'
 import GradientButton from '../components/GradientButton'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
   async function handleLogin() {
     try {
-      const response = await api.post(
+      await api.post(
         '/auth/login',
         new URLSearchParams({ username: email, password }),
       )
-      localStorage.setItem('token', response.data.access_token)
+      // Drop a cached 401 from visiting a protected route while logged out
+      queryClient.removeQueries({ queryKey: ['auth', 'me'] })
       navigate('/contacts')
     } catch {
       setError('Invalid email or password')
