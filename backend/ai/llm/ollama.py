@@ -251,9 +251,9 @@ Now extract a contact profile from this information:
                 # Parse the contact response from the LLM
                 return self._parse_contact_response(response)
             except (ValidationError, ValueError, json.JSONDecodeError) as e:
-                # Log the error
+                # Log the error (parse failure)
                 logger.warning(
-                    "LLM contact parse failed",
+                    "LLM contact parse failed (attempt=%s, format=%s): %s",
                     attempt,
                     response_format if isinstance(response_format, str) else "schema",
                     e,
