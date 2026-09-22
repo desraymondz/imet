@@ -67,3 +67,16 @@ ollama serve
 ```bash
 docker compose -f compose.dev.yml --env-file .env.local up --build
 ```
+
+## Tests
+
+Integration tests need the Postgres container running, because it is using a separate `imet_test` database (set `TEST_DATABASE_URL` in `.env.local`). The database is created automatically and emptied after each test. AI components are mocked (no Ollama server is needed).
+
+- `tests/unit`: JWT and register validation, LLM output parsing, retrieval merge
+- `tests/integration`: ownership, auth and sessions, recall statuses, embedding sync
+
+
+```bash
+uv run pytest
+uv run pytest --cov=backend --cov-report=html
+```
