@@ -152,6 +152,13 @@ def test_filter_drops_non_candidates(llm):
     assert llm.filter_recall_matches("q", [candidate(1), candidate(2)]) == [1]
 
 
+def test_filter_drops_repeated_ids(llm):
+    """Ensure an id the LLM repeats is only returned once."""
+    script(llm, '{"contact_ids": [2, 1, 2]}')
+    # Small models sometimes repeat an id in their JSON output
+    assert llm.filter_recall_matches("q", [candidate(1), candidate(2)]) == [2, 1]
+
+
 def test_filter_retries_after_llm_error(llm):
     """Ensure a failed LLM call is retried and the second filter result is used."""
     # Fail once, then succeed

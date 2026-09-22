@@ -456,6 +456,9 @@ Respond with valid JSON only.
                 # Keep only IDs that were in the candidate list, skip any hallucinated IDs
                 matched_ids: list[int] = []
                 for contact_id in parsed.contact_ids:
+                    # Skip IDs the model repeated
+                    if contact_id in matched_ids:
+                        continue
                     for candidate in candidates:
                         if candidate.id == contact_id:
                             matched_ids.append(contact_id)

@@ -107,3 +107,11 @@ def test_results_follow_the_filter_order(alice, llm):
     body = search(alice)
 
     assert [r["contact"]["id"] for r in body["results"]] == [investor_id, hiker_id]
+
+def test_repeated_id(alice, llm):
+    """Ensure a contact id the LLM repeats is only returned once."""
+    hiker_id = create_contact(alice, HIKER)
+    llm.filter_recall_matches.return_value = [hiker_id, hiker_id]
+    body = search(alice)
+
+    assert [r["contact"]["id"] for r in body["results"]] == [hiker_id]

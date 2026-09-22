@@ -173,10 +173,15 @@ def search_contacts(
 
     # Build filtered results in the order from LLM filter
     filtered_results: list[RecallResultItem] = []
+    seen_ids: set[int] = set()
     for contact_id in filtered_ids:
+        # Never show the same contact twice, even if an ID comes through more than once
+        if contact_id in seen_ids:
+            continue
         for result in results:
             if result.contact.id == contact_id:
                 filtered_results.append(result)
+                seen_ids.add(contact_id)
                 break
 
     if not filtered_results:
