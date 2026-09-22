@@ -2,6 +2,12 @@
 
 export const PASSWORD_MIN_LENGTH = 8
 export const PASSWORD_MAX_LENGTH = 72
+// bcrypt hashes at most 72 bytes, and the API rejects anything longer
+export const PASSWORD_MAX_BYTES = 72
+
+function passwordByteLength(password: string): number {
+  return new TextEncoder().encode(password).length
+}
 
 export function normaliseEmail(email: string): string {
   return email.trim().toLowerCase()
@@ -37,7 +43,11 @@ export function registerValidationMessage(
     return 'Enter a valid email'
   }
   if (password.length < PASSWORD_MIN_LENGTH || password.length > PASSWORD_MAX_LENGTH) {
-    return 'Password must be 8-72 characters'
+    return `Password must be ${PASSWORD_MIN_LENGTH}-${PASSWORD_MAX_LENGTH} alphanumeric characters`
+  }
+  if (passwordByteLength(password) > PASSWORD_MAX_BYTES) {
+    // Accented characters and emoji take more than one byte
+    return 'Password is too long. Accented characters and emoji count as more than one.'
   }
   if (password !== confirmPassword) {
     return 'Passwords do not match'
