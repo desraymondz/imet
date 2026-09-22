@@ -88,3 +88,11 @@ def test_email_case_and_whitespace(client, make_user):
     )
     assert login.status_code == 200
     assert client.get("/auth/me").json()["email"] == "alice@test.com"
+
+def test_login_with_overlong_password(client, make_user):
+    """Ensure a password over bcrypt's 72-byte limit is rejected."""
+    make_user("alice@test.com")
+
+    response = client.post("/auth/login", data={"username": "alice@test.com", "password": "a" * 100})
+
+    assert response.status_code == 401

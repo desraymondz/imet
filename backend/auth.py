@@ -22,7 +22,11 @@ def hash_password(plain: str) -> str:
 
 def verify_password(plain: str, hashed: str) -> bool:
     """Verify a plain text password against a hashed password."""
-    return bcrypt.checkpw(plain.encode(), hashed.encode())
+    try:
+        return bcrypt.checkpw(plain.encode(), hashed.encode())
+    except ValueError:
+        # failed login, not a server error
+        return False
 
 
 def create_access_token(data: dict) -> str:

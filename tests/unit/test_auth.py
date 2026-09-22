@@ -73,10 +73,6 @@ def test_register_password_length_limits(length, valid):
             RegisterRequest(email="alice@test.com", password="a" * length)
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="bug: max_length counts characters but bcrypt's max length is 72 bytes",
-)
 def test_register_rejects_password_over_72_bytes():
     """Ensure a password over 72 bytes (multi-byte characters such as é count as 2 bytes) is rejected."""
     with pytest.raises(ValidationError):

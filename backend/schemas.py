@@ -25,6 +25,14 @@ class RegisterRequest(BaseModel):
             return normalise_email(value)
         return value
 
+    @field_validator("password")
+    @classmethod
+    def check_password_bytes(cls, value: str) -> str:
+        # bytes count includes multibyte characters such as "é"
+        if len(value.encode()) > PASSWORD_MAX_LENGTH:
+            raise ValueError(f"Password must be at most {PASSWORD_MAX_LENGTH} bytes")
+        return value
+
 
 class UserOut(BaseModel):
     """Response schema for the current user"""
