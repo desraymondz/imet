@@ -5,7 +5,6 @@ from sentence_transformers import SentenceTransformer
 from backend.config import settings
 from backend.models import EMBEDDING_DIM
 
-# TODO: add logging
 logger = logging.getLogger(__name__)
 
 
@@ -13,7 +12,9 @@ class BGEEmbedder:
     def __init__(self):
         # Load embedding model from environment variables
         # Reference: https://sbert.net/docs/quickstart.html#sentence-transformer
+        logger.info("Loading embedding model %s", settings.embedding_model)
         self.model = SentenceTransformer(settings.embedding_model)
+        logger.info("Embedding model %s loaded", settings.embedding_model)
 
     def embed_text(self, text: str) -> list[float]:
         """
@@ -23,6 +24,7 @@ class BGEEmbedder:
         # Strip whitespace before embedding
         normalised = text.strip()
         if not normalised:
+            logger.warning("Cannot embed empty text")
             raise ValueError("Cannot embed because empty text")
 
         # Encode text into a normalised vector
@@ -31,10 +33,21 @@ class BGEEmbedder:
 
         # Verify if embedding dimensions match the database schema
         if len(vector) != EMBEDDING_DIM:
+            logger.error(
+                "Embedding dimension mismatch (model=%s): expected %s, got %s",
+                settings.embedding_model,
+                EMBEDDING_DIM,
+                len(vector),
+            )
             raise ValueError(
                 f"Embedding dimensions does not match: Expected {EMBEDDING_DIM} but got {len(vector)}"
             )
 
+        logger.debug(
+            "Embedded text (chars=%s, dim=%s)",
+            len(normalised),
+            len(vector),
+        )
         return vector
 
 
