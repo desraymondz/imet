@@ -21,7 +21,7 @@ export default function PhotoStep({ previewUrl, onImageSelect, error }: PhotoSte
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="font-bold">Add a Business Card or LinkedIn Profile</h1>
+        <h1 className="font-bold">Add a Business Card</h1>
       </div>
 
       {/* Upload button */}
@@ -29,13 +29,13 @@ export default function PhotoStep({ previewUrl, onImageSelect, error }: PhotoSte
         type="button"
         onClick={() => fileRef.current?.click()}
         className="flex w-full flex-col items-center justify-center gap-3 rounded-[var(--r-lg)] border-2 border-dashed border-[var(--violet)] bg-white/50 px-6 py-10 text-left"
-        aria-label={previewUrl ? 'Change image' : 'Upload an image of the business card or LinkedIn profile'}
+        aria-label={previewUrl ? 'Change business card image' : 'Upload an image of the business card'}
       >
         {/* Preview image */}
         {previewUrl ? (
           <img
             src={previewUrl}
-            alt="Upload an image of the business card or LinkedIn profile"
+            alt="Business card image"
             className="max-h-[200px] w-full rounded-[14px] object-contain"
           />
         ) : (
@@ -55,7 +55,7 @@ export default function PhotoStep({ previewUrl, onImageSelect, error }: PhotoSte
 
             {/* Upload text */}
             <p className="text-center leading-relaxed text-[var(--fg-3)]">
-              Tap to choose from your photo library.
+              Tap to choose a business card photo from your library.
             </p>
           </>
         )}
@@ -71,7 +71,7 @@ export default function PhotoStep({ previewUrl, onImageSelect, error }: PhotoSte
       />
 
       {/* Image step tip */}
-      <StepTip>Text on the image is extracted automatically</StepTip>
+      <StepTip>Text on the business card is extracted automatically</StepTip>
 
       {/* Error message */}
       {error ? <p className="text-error">{error}</p> : null}

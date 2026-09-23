@@ -227,7 +227,7 @@ export default function NewContactPage() {
     }
   }
 
-  // Extract text from a business card / profile image
+  // Extract text from a business card image
   async function ocrImage(file: File): Promise<string> {
     // Create a new FormData object to send the image file to the backend
     const formData = new FormData()
