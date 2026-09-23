@@ -215,7 +215,7 @@ Example:
 Voice note transcript:
 Met Jane Doe at the design meetup. She leads product design at Acme Labs. Really into trail running, did the Three Peaks last year.
 
-Image text (business card, LinkedIn, Instagram, etc.):
+Image text (business card):
 JANE DOE
 Product Designer
 Acme Labs
