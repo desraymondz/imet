@@ -127,8 +127,6 @@ class OllamaLLM:
 
         # Call Ollama API to generate a chat completion
         # Reference: https://github.com/ollama/ollama/blob/main/docs/api.md#generate-a-chat-completion
-        # Set the temperature to 0.1 for more deterministic responses
-        # TODO: explore stream response
         response = self.client.chat(
             model=self.models[llm_type],
             messages=messages,
@@ -271,7 +269,6 @@ Now extract a contact profile from this information:
         # Clean the query
         cleaned_query = query.strip()
         # Extract keywords from the query as a fallback when the keywords are empty
-        # TODO: improve keyword extraction (remove stopwords, lemmatise, etc.). Update the eval code as well.
         fallback_keywords = [token for token in cleaned_query.split() if token]
 
         # If the query is empty, return an empty recall query plan
