@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Trash2 } from 'lucide-react'
 import { api } from '../libs/api'
 
 // UI components
+import ConfirmDialog from '../components/ConfirmDialog'
 import FixedBottomBar from '../components/FixedBottomBar'
 import GradientButton from '../components/GradientButton'
 import Spinner from '../components/Spinner'
@@ -32,6 +34,8 @@ export default function EditContactPage() {
   // Draft state
   const [draft, setDraft] = useState<ContactDraft | null>(null)
   const [error, setError] = useState('')
+  // Whether the delete confirmation is open
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   // Parse the route param into a positive integer contact id
   const contactId = Number(id)
@@ -64,6 +68,19 @@ export default function EditContactPage() {
     },
     onSuccess: async () => {
       // Refetch contacts to update the contact list
+      await queryClient.invalidateQueries({ queryKey: ['contacts'] })
+      navigate('/contacts')
+    },
+  })
+
+  // Delete the contact and return to the contacts list
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await api.delete(`/contacts/${contactId}`)
+    },
+    onSuccess: async () => {
+      // Drop the deleted contact's cached detail, then refetch the contact list
+      queryClient.removeQueries({ queryKey: ['contacts', contactId] })
       await queryClient.invalidateQueries({ queryKey: ['contacts'] })
       navigate('/contacts')
     },
@@ -105,6 +122,19 @@ export default function EditContactPage() {
     }
   }
 
+  // Delete the contact once the user confirms
+  async function handleDelete() {
+    setError('')
+
+    try {
+      await deleteMutation.mutateAsync()
+    } catch {
+      // Keep the user on the form so nothing they typed is lost
+      setConfirmingDelete(false)
+      setError('Could not delete this contact. Please try again.')
+    }
+  }
+
   // Invalid id or contact not found page
   if (!isValidId || isError) {
     return (
@@ -132,10 +162,21 @@ export default function EditContactPage() {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      {/* Close button */}
-      <header className="px-5 pt-5">
+    // Anchor the confirm dialog to the page, not the app shell
+    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+      {/* Close and delete actions */}
+      <header className="flex items-center justify-between px-5 pt-5">
         <CloseButton onClose={handleClose} />
+
+        <button
+          type="button"
+          onClick={() => setConfirmingDelete(true)}
+          disabled={deleteMutation.isPending}
+          className="flex size-10 items-center justify-center rounded-full text-[var(--danger)] disabled:opacity-50"
+          aria-label="Delete contact"
+        >
+          <Trash2 className="size-5" aria-hidden />
+        </button>
       </header>
 
       {/* Review form */}
@@ -157,6 +198,18 @@ export default function EditContactPage() {
           {saveMutation.isPending ? 'Saving…' : 'Save changes'}
         </GradientButton>
       </FixedBottomBar>
+
+      {/* Confirm delete dialog */}
+      {confirmingDelete ? (
+        <ConfirmDialog
+          title="Delete contact?"
+          message={`${(draft.display_name ?? '').trim() || 'This contact'} will be removed for good. This cannot be undone.`}
+          confirmLabel={deleteMutation.isPending ? 'Deleting…' : 'Delete'}
+          pending={deleteMutation.isPending}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmingDelete(false)}
+        />
+      ) : null}
     </div>
   )
 }

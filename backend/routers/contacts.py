@@ -133,3 +133,16 @@ def update_contact(
     db.commit()
     db.refresh(contact)
     return contact
+
+
+@router.delete("/{contact_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_contact(
+    contact_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Delete a specific contact for the current user"""
+    contact = _get_owned_contact(db, contact_id, current_user.id)
+
+    db.delete(contact)
+    db.commit()

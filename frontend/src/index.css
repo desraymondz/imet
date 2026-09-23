@@ -183,6 +183,22 @@ p {
   transform: scale(0.98);
 }
 
+.btn--danger {
+  /* Destructive button variant */
+  background: var(--danger);
+  color: var(--fg-on-brand);
+  box-shadow: var(--shadow);
+}
+
+.btn--danger:active {
+  transform: scale(0.98);
+}
+
+.btn--danger:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .btn--block {
   /* Full-width button variant */
   width: 100%;

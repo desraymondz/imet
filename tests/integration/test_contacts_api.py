@@ -1,6 +1,7 @@
 # Integration tests for contacts:
 # - Storing a profile embedding on create
 # - Re-embedding and clearing it on update
+# - Deleting a contact removes it
 
 from backend.models import Contact
 from tests.mock_embedder import topic_vector
@@ -41,3 +42,23 @@ def test_reembedding_and_clearing(alice, db_session):
     cleared = alice.patch(f"/contacts/{contact_id}", json={"profile_text": ""})
     assert cleared.status_code == 200
     assert get_stored_contact(db_session, contact_id).profile_embedding is None
+
+
+def test_deleting_contact(alice, db_session):
+    """Ensure deleting a contact removes it from the database."""
+    contact_id = alice.post(
+        "/contacts/",
+        json={"display_name": "Desmond", "profile_text": "Loves hiking in the Peak District"},
+    ).json()["id"]
+
+    deleted = alice.delete(f"/contacts/{contact_id}")
+    assert deleted.status_code == 204
+
+    # The row is gone, so reading it back is a 404
+    assert get_stored_contact(db_session, contact_id) is None
+    assert alice.get(f"/contacts/{contact_id}").status_code == 404
+
+
+def test_deleting_missing_contact(alice):
+    """Ensure deleting a contact that does not exist is not found."""
+    assert alice.delete("/contacts/999").status_code == 404

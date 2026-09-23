@@ -1,5 +1,5 @@
 # Integration tests for ownership:
-# - Another user's contact cannot be read or updated
+# - Another user's contact cannot be read, updated or deleted
 # - List and recall return only your own contacts
 
 # Mock user
@@ -24,6 +24,12 @@ def test_updating_another_users_contact(alice, bob):
     contact_id = create_contact(alice, DESMOND)
     assert bob.patch(f"/contacts/{contact_id}", json={"display_name": "Hacked"}).status_code == 404
     assert alice.get(f"/contacts/{contact_id}").json()["display_name"] == "Desmond"
+
+def test_deleting_another_users_contact(alice, bob):
+    """Ensure deleting another user's contact is not found and leaves it in place."""
+    contact_id = create_contact(alice, DESMOND)
+    assert bob.delete(f"/contacts/{contact_id}").status_code == 404
+    assert alice.get(f"/contacts/{contact_id}").status_code == 200
 
 def test_listing_contacts(alice, bob):
     """Ensure listing contacts returns only your own."""
